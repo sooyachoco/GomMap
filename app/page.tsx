@@ -18,6 +18,7 @@ import {
 import { sharePlace } from "@/lib/share";
 
 const categories: PlaceCategoryFilter[] = ["전체", "맛집", "카페", "데이트", "기타"];
+const saveTags = ["맛집", "카페", "데이트", "기타"] as const;
 const profileSrc =
   typeof profileImg === "string" ? profileImg : profileImg.src;
 
@@ -134,6 +135,11 @@ export default function Home() {
   const handleSelectSaved = (place: SavedPlace) => {
     setMapMode("saved");
     setSelected(place);
+    setSaveTag(
+      place.userTag && place.userTag !== "전체"
+        ? place.userTag
+        : suggestSaveTag(place),
+    );
     setExpanded(false);
   };
 
@@ -146,6 +152,38 @@ export default function Home() {
     },
     [showToast],
   );
+
+  const updateSavedTag = useCallback(
+    (placeId: string, tag: (typeof saveTags)[number]) => {
+      setSaved((current) =>
+        current.map((place) =>
+          place.id === placeId ? { ...place, userTag: tag } : place,
+        ),
+      );
+      setSelected((current) =>
+        current && current.id === placeId
+          ? { ...current, userTag: tag }
+          : current,
+      );
+      setSaveTag(tag);
+      showToast(`${tag}(으)로 변경했어요`);
+    },
+    [showToast],
+  );
+
+  const modeLabel = useMemo(() => {
+    if (mapMode === "saved") {
+      const scope = category === "전체" ? "전체" : category;
+      return `저장한 장소 · ${scope} ${savedOnMap.length}`;
+    }
+    if (searchStatus === "ok") {
+      return category === "전체"
+        ? `검색 결과 ${filteredResults.length}`
+        : `검색 결과 · ${category} ${filteredResults.length}`;
+    }
+    if (searchStatus === "loading") return "검색 중…";
+    return "검색하거나 저장 장소를 열어보세요";
+  }, [mapMode, category, savedOnMap.length, searchStatus, filteredResults.length]);
 
   return (
     <main className="app-shell">
@@ -202,18 +240,24 @@ export default function Home() {
           </button>
         </div>
 
-        <nav className="chips" aria-label="장소 카테고리">
+        <nav className="chips" aria-label={mapMode === "saved" ? "저장 태그 필터" : "검색 결과 필터"}>
           {categories.map((item) => (
             <button
               key={item}
               type="button"
               className={category === item ? "active" : ""}
               onClick={() => setCategory(item)}
+              aria-pressed={category === item}
             >
               {item}
             </button>
           ))}
         </nav>
+        <p className="chips-caption" aria-live="polite">
+          {mapMode === "saved"
+            ? "저장 태그로 지도를 보고 있어요"
+            : "검색 결과를 카테고리로 걸러요"}
+        </p>
 
         <section className="map" aria-label="장소 지도">
           <KakaoMap
@@ -227,6 +271,9 @@ export default function Home() {
             onSearchResults={setSearchResults}
           />
 
+          <div className="map-mode-badge" role="status">
+            {modeLabel}
+          </div>
           {mapMode === "saved" && savedOnMap.length === 0 && (
             <div className="empty-map">
               {category === "전체"
@@ -297,6 +344,37 @@ export default function Home() {
                   {selected.roadAddress || selected.address}
                   {selected.phone ? ` · ${selected.phone}` : ""}
                 </small>
+                {isSelectedSaved ? (
+                  <div className="tag-row compact" aria-label="저장 태그 변경">
+                    {saveTags.map((tag) => (
+                      <button
+                        key={tag}
+                        type="button"
+                        className={
+                          (selected.userTag || suggestSaveTag(selected)) === tag
+                            ? "active"
+                            : ""
+                        }
+                        onClick={() => updateSavedTag(selected.id, tag)}
+                      >
+                        {tag}
+                      </button>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="tag-row compact" aria-label="저장 태그 선택">
+                    {saveTags.map((tag) => (
+                      <button
+                        key={tag}
+                        type="button"
+                        className={saveTag === tag ? "active" : ""}
+                        onClick={() => setSaveTag(tag)}
+                      >
+                        {tag}
+                      </button>
+                    ))}
+                  </div>
+                )}
                 <div className="place-actions-inline">
                   {selected.placeUrl ? (
                     <a
@@ -322,8 +400,10 @@ export default function Home() {
                 <button
                   type="button"
                   className={`heart${isSelectedSaved ? " saved" : ""}`}
-                  onClick={() => toggleSaved(selected)}
-                  aria-label="선택한 장소 저장"
+                  onClick={() => toggleSaved(selected, saveTag)}
+                  aria-label={
+                    isSelectedSaved ? "선택한 장소 저장 해제" : "선택한 장소 저장"
+                  }
                 >
                   <Icon name="heart" />
                 </button>
@@ -333,15 +413,15 @@ export default function Home() {
             <article className="selected-place placeholder">
               <div className="place-info">
                 <div className="place-title-row">
-                  <strong>장소를 검색해 보세요</strong>
+                  <strong>동네와 키워드로 검색해 보세요</strong>
                 </div>
-                <small>마커를 선택하면 상세 정보가 나타나요</small>
+                <small>예: 마곡 카페 · 마커를 눌러 저장할 수 있어요</small>
               </div>
             </article>
           )}
         </section>
 
-        <section className={`sheet ${expanded ? "expanded" : ""}`}>
+        <section className={`sheet ${expanded ? "expanded" : "collapsed"}`}>
           <button
             className="sheet-handle"
             type="button"
@@ -368,10 +448,10 @@ export default function Home() {
             </button>
           </div>
 
-          {selected && !isSelectedSaved ? (
+          {expanded && selected && !isSelectedSaved ? (
             <div className="tag-row" aria-label="저장 태그 선택">
               <span>저장 태그</span>
-              {(["맛집", "카페", "데이트", "기타"] as const).map((tag) => (
+              {saveTags.map((tag) => (
                 <button
                   key={tag}
                   type="button"
@@ -384,79 +464,102 @@ export default function Home() {
             </div>
           ) : null}
 
-          <div className="place-list">
-            {saved.length ? (
-              saved.map((place) => (
-                <article
-                  className="place-card"
-                  key={place.id}
-                  onClick={() => handleSelectSaved(place)}
-                  onKeyDown={(event) => {
-                    if (event.key === "Enter" || event.key === " ") {
-                      event.preventDefault();
-                      handleSelectSaved(place);
-                    }
-                  }}
-                  role="button"
-                  tabIndex={0}
-                >
-                  <div className={`place-thumb ${getPlaceTone(place)}`}>
-                    <span>{getPlaceEmoji(place)}</span>
-                  </div>
-                  <div className="place-copy">
-                    <small>{place.userTag || suggestSaveTag(place)}</small>
-                    <h3>
-                      <span className="place-name">{place.name}</span>
-                      {place.category ? (
-                        <em className="category-tag">{place.category}</em>
-                      ) : null}
-                    </h3>
-                    <p>{place.note || place.address}</p>
-                  </div>
-                  <div className="place-actions">
-                    <button
-                      className="share-btn"
-                      type="button"
-                      onClick={(event) => {
-                        event.stopPropagation();
-                        handleShare(place);
-                      }}
-                      aria-label={`${place.name} 공유`}
-                    >
-                      <Icon name="share" />
-                    </button>
-                    <button
-                      className="heart saved"
-                      type="button"
-                      onClick={(event) => {
-                        event.stopPropagation();
-                        toggleSaved(place);
-                      }}
-                      aria-label={`${place.name} 저장 해제`}
-                    >
-                      <Icon name="heart" />
-                    </button>
-                  </div>
-                </article>
-              ))
-            ) : (
-              <div className="empty-list">
-                <span>♡</span>
-                <strong>아직 저장한 장소가 없어요</strong>
-                <p>지도에서 마음에 드는 곳을 저장해 보세요.</p>
-              </div>
-            )}
-          </div>
+          {expanded ? (
+            <div className="place-list">
+              {saved.length ? (
+                saved.map((place) => (
+                  <article
+                    className="place-card"
+                    key={place.id}
+                    onClick={() => handleSelectSaved(place)}
+                    onKeyDown={(event) => {
+                      if (event.key === "Enter" || event.key === " ") {
+                        event.preventDefault();
+                        handleSelectSaved(place);
+                      }
+                    }}
+                    role="button"
+                    tabIndex={0}
+                  >
+                    <div className={`place-thumb ${getPlaceTone(place)}`}>
+                      <span>{getPlaceEmoji(place)}</span>
+                    </div>
+                    <div className="place-copy">
+                      <div
+                        className="tag-row compact card-tags"
+                        onClick={(event) => event.stopPropagation()}
+                        onKeyDown={(event) => event.stopPropagation()}
+                      >
+                        {saveTags.map((tag) => (
+                          <button
+                            key={tag}
+                            type="button"
+                            className={
+                              (place.userTag || suggestSaveTag(place)) === tag
+                                ? "active"
+                                : ""
+                            }
+                            onClick={() => updateSavedTag(place.id, tag)}
+                            aria-label={`${place.name} 태그를 ${tag}(으)로 변경`}
+                          >
+                            {tag}
+                          </button>
+                        ))}
+                      </div>
+                      <h3>
+                        <span className="place-name">{place.name}</span>
+                        {place.category ? (
+                          <em className="category-tag">{place.category}</em>
+                        ) : null}
+                      </h3>
+                      <p>{place.note || place.address}</p>
+                    </div>
+                    <div className="place-actions">
+                      <button
+                        className="share-btn"
+                        type="button"
+                        onClick={(event) => {
+                          event.stopPropagation();
+                          handleShare(place);
+                        }}
+                        aria-label={`${place.name} 공유`}
+                      >
+                        <Icon name="share" />
+                      </button>
+                      <button
+                        className="heart saved"
+                        type="button"
+                        onClick={(event) => {
+                          event.stopPropagation();
+                          toggleSaved(place);
+                        }}
+                        aria-label={`${place.name} 저장 해제`}
+                      >
+                        <Icon name="heart" />
+                      </button>
+                    </div>
+                  </article>
+                ))
+              ) : (
+                <div className="empty-list">
+                  <span>♡</span>
+                  <strong>아직 저장한 장소가 없어요</strong>
+                  <p>지도에서 마음에 드는 곳을 저장해 보세요.</p>
+                </div>
+              )}
+            </div>
+          ) : null}
 
-          <button
-            className={`save-cta ${isSelectedSaved ? "is-saved" : ""}`}
-            type="button"
-            disabled={!selected}
-            onClick={() => selected && toggleSaved(selected, saveTag)}
-          >
-            <Icon name={isSelectedSaved ? "heart" : "bookmark"} />
-            {isSelectedSaved ? "저장한 장소예요" : "이 장소 저장하기"}
-          </button>
+          {expanded && selected && !isSelectedSaved ? (
+            <button
+              className="save-cta"
+              type="button"
+              onClick={() => toggleSaved(selected, saveTag)}
+            >
+              <Icon name="bookmark" />
+              이 장소 저장하기
+            </button>
+          ) : null}
         </section>
 
         {toast ? (

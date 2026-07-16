@@ -161,7 +161,7 @@ svg {
 .chips {
   display: flex;
   gap: 6px;
-  padding: 8px 16px 10px;
+  padding: 8px 16px 4px;
   overflow-x: auto;
   scrollbar-width: none;
 }
@@ -194,9 +194,25 @@ svg {
   box-shadow: 0 7px 18px rgba(244, 96, 82, 0.24);
 }
 
+.chips button:focus-visible,
+.tag-row button:focus-visible,
+.place-actions button:focus-visible,
+.search-btn:focus-visible,
+.sheet-heading button:focus-visible {
+  outline: 2px solid var(--coral);
+  outline-offset: 2px;
+}
+
+.chips-caption {
+  margin: 0 16px 8px;
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 600;
+}
+
 .map {
   position: absolute;
-  inset: 178px 0 0;
+  inset: 196px 0 0;
   overflow: hidden;
   background: #e7eedf;
 }
@@ -325,11 +341,31 @@ svg {
     0 10px 22px rgba(172, 68, 58, 0.32);
 }
 
+.map-mode-badge {
+  position: absolute;
+  z-index: 5;
+  top: 12px;
+  left: 50%;
+  transform: translateX(-50%);
+  max-width: calc(100% - 96px);
+  padding: 8px 12px;
+  border-radius: 999px;
+  background: rgba(255, 253, 249, 0.94);
+  border: 1px solid white;
+  box-shadow: 0 6px 18px rgba(72, 60, 48, 0.12);
+  color: var(--ink);
+  font-size: 11px;
+  font-weight: 800;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
 .locate {
   position: absolute;
   z-index: 6;
   right: 18px;
-  bottom: 250px;
+  bottom: 148px;
   width: 48px;
   height: 48px;
   min-width: 44px;
@@ -348,7 +384,7 @@ svg {
   z-index: 6;
   left: 16px;
   right: 16px;
-  bottom: 228px;
+  bottom: 116px;
   min-height: 75px;
   display: flex;
   flex-direction: row;
@@ -488,8 +524,8 @@ svg {
   left: 0;
   right: 0;
   bottom: 0;
-  height: 224px;
-  padding: 8px 20px 18px;
+  height: 108px;
+  padding: 8px 20px 12px;
   background: rgba(255, 253, 249, 0.97);
   border-radius: 30px 30px 0 0;
   box-shadow: 0 -10px 38px rgba(65, 50, 38, 0.14);
@@ -499,6 +535,13 @@ svg {
 
 .sheet.expanded {
   height: 72%;
+  padding-bottom: 18px;
+}
+
+.sheet.collapsed .place-list,
+.sheet.collapsed .save-cta,
+.sheet.collapsed .tag-row {
+  display: none;
 }
 
 .sheet-handle {
@@ -566,6 +609,15 @@ svg {
   scrollbar-width: none;
 }
 
+.tag-row.compact {
+  margin: 6px 0 2px;
+  gap: 6px;
+}
+
+.tag-row.card-tags {
+  margin: 0 0 4px;
+}
+
 .tag-row span {
   flex: 0 0 auto;
   color: var(--muted);
@@ -575,14 +627,20 @@ svg {
 
 .tag-row button {
   flex: 0 0 auto;
-  min-height: 36px;
-  padding: 0 12px;
+  min-height: 28px;
+  padding: 0 10px;
   border: 1px solid var(--line);
   border-radius: 14px;
   background: white;
-  font-size: 12px;
+  font-size: 11px;
   font-weight: 700;
   cursor: pointer;
+}
+
+.tag-row.compact button {
+  min-height: 26px;
+  padding: 0 8px;
+  font-size: 10px;
 }
 
 .tag-row button.active {
@@ -740,7 +798,7 @@ svg {
   position: absolute;
   z-index: 20;
   left: 50%;
-  bottom: 238px;
+  bottom: 126px;
   transform: translateX(-50%);
   padding: 11px 16px;
   border-radius: 20px;
@@ -781,19 +839,23 @@ svg {
   }
 
   .map {
-    inset: 170px 0 0;
+    inset: 188px 0 0;
   }
 
   .selected-place {
-    bottom: 224px;
+    bottom: 112px;
   }
 
   .locate {
-    bottom: 318px;
+    bottom: 220px;
+  }
+
+  .toast {
+    bottom: 120px;
   }
 
   .sheet {
-    padding-bottom: max(16px, env(safe-area-inset-bottom));
+    padding-bottom: max(12px, env(safe-area-inset-bottom));
   }
 }
 
