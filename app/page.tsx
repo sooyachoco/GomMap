@@ -321,7 +321,7 @@ export default function Home() {
                 </button>
                 <button
                   type="button"
-                  className={isSelectedSaved ? "saved" : ""}
+                  className={`heart${isSelectedSaved ? " saved" : ""}`}
                   onClick={() => toggleSaved(selected)}
                   aria-label="선택한 장소 저장"
                 >
@@ -413,28 +413,30 @@ export default function Home() {
                     </h3>
                     <p>{place.note || place.address}</p>
                   </div>
-                  <button
-                    className="share-btn ghost"
-                    type="button"
-                    onClick={(event) => {
-                      event.stopPropagation();
-                      handleShare(place);
-                    }}
-                    aria-label={`${place.name} 공유`}
-                  >
-                    <Icon name="share" />
-                  </button>
-                  <button
-                    className="heart saved"
-                    type="button"
-                    onClick={(event) => {
-                      event.stopPropagation();
-                      toggleSaved(place);
-                    }}
-                    aria-label={`${place.name} 저장 해제`}
-                  >
-                    <Icon name="heart" />
-                  </button>
+                  <div className="place-actions">
+                    <button
+                      className="share-btn"
+                      type="button"
+                      onClick={(event) => {
+                        event.stopPropagation();
+                        handleShare(place);
+                      }}
+                      aria-label={`${place.name} 공유`}
+                    >
+                      <Icon name="share" />
+                    </button>
+                    <button
+                      className="heart saved"
+                      type="button"
+                      onClick={(event) => {
+                        event.stopPropagation();
+                        toggleSaved(place);
+                      }}
+                      aria-label={`${place.name} 저장 해제`}
+                    >
+                      <Icon name="heart" />
+                    </button>
+                  </div>
                 </article>
               ))
             ) : (

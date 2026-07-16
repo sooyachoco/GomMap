@@ -432,40 +432,54 @@ svg {
 
 .place-actions {
   margin-left: auto;
-  display: flex;
+  display: inline-flex;
   flex-direction: row;
   flex-wrap: nowrap;
   align-items: center;
-  justify-content: flex-end;
-  gap: 6px;
+  justify-content: center;
+  gap: 14px;
   flex: 0 0 auto;
+  align-self: center;
 }
 
 .selected-place .place-actions button,
-.share-btn {
-  flex: 0 0 44px;
-  width: 44px;
-  height: 44px;
-  display: grid;
+.place-card .place-actions button,
+.share-btn,
+.heart {
+  flex: 0 0 auto;
+  width: 32px;
+  height: 32px;
+  min-width: 32px;
+  min-height: 32px;
+  display: inline-grid;
   place-items: center;
   border: 0;
-  border-radius: 50%;
-  background: var(--coral-soft);
+  border-radius: 0;
+  background: transparent;
   color: var(--coral);
   cursor: pointer;
+  padding: 0;
+}
+
+.selected-place .place-actions button svg,
+.place-card .place-actions button svg,
+.share-btn svg,
+.heart svg {
+  width: 22px;
+  height: 22px;
 }
 
 .share-btn.ghost {
   background: transparent;
 }
 
-.selected-place button.saved svg {
+.selected-place button.saved svg,
+.heart.saved svg {
   fill: var(--coral);
 }
 
-.place-card .share-btn,
-.place-card .heart {
-  flex: 0 0 auto;
+.place-card .place-actions {
+  margin-left: 0;
 }
 
 .sheet {
@@ -657,18 +671,6 @@ svg {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-}
-
-.heart {
-  flex: 0 0 auto;
-  width: 44px;
-  height: 44px;
-  display: grid;
-  place-items: center;
-  border: 0;
-  background: transparent;
-  color: var(--coral);
-  cursor: pointer;
 }
 
 .heart.saved svg {
