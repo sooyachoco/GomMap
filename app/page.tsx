@@ -515,7 +515,7 @@ export default function Home() {
                 runSearch();
               }
             }}
-            placeholder="어디를 찾고 있나요?"
+            placeholder="지연, 어디 가고싶어?"
             aria-label="장소 검색"
           />
           {query ? (
