@@ -537,6 +537,9 @@ svg {
 .sheet.expanded {
   height: 72%;
   padding-bottom: 18px;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
 }
 
 .sheet.dragging {
@@ -664,11 +667,17 @@ svg {
   background: var(--coral);
 }
 
+.tag-row.sheet-list-filter {
+  flex: 0 0 auto;
+  margin-bottom: 8px;
+}
+
 .place-list {
   display: flex;
   flex-direction: column;
   gap: 10px;
-  height: calc(100% - 116px);
+  flex: 1 1 auto;
+  min-height: 0;
   overflow: auto;
   scrollbar-width: none;
 }

@@ -520,7 +520,10 @@ export default function Home() {
               <div>
                 <p>MY PLACES</p>
                 <h2>
-                  저장한 장소 <span>{saved.length}</span>
+                  저장한 장소{" "}
+                  <span>
+                    {category === "전체" ? saved.length : savedOnMap.length}
+                  </span>
                 </h2>
               </div>
               <button
@@ -535,6 +538,23 @@ export default function Home() {
               </button>
             </div>
           </div>
+
+          {expanded ? (
+            <div className="tag-row sheet-list-filter" aria-label="저장 목록 태그 필터">
+              <span>분류</span>
+              {categories.map((item) => (
+                <button
+                  key={item}
+                  type="button"
+                  className={category === item ? "active" : ""}
+                  aria-pressed={category === item}
+                  onClick={() => setCategory(item)}
+                >
+                  {item}
+                </button>
+              ))}
+            </div>
+          ) : null}
 
           {expanded && selected && !isSelectedSaved ? (
             <div className="tag-row" aria-label="저장 태그 선택">
@@ -554,8 +574,8 @@ export default function Home() {
 
           {expanded ? (
             <div className="place-list">
-              {saved.length ? (
-                saved.map((place) => (
+              {savedOnMap.length ? (
+                savedOnMap.map((place) => (
                   <article
                     className="place-card"
                     key={place.id}
@@ -628,6 +648,16 @@ export default function Home() {
                     </div>
                   </article>
                 ))
+              ) : saved.length ? (
+                <div className="empty-list">
+                  <span>✦</span>
+                  <strong>
+                    {category === "전체"
+                      ? "표시할 장소가 없어요"
+                      : `저장한 ${category}이(가) 없어요`}
+                  </strong>
+                  <p>다른 분류를 선택하거나 카드에서 태그를 바꿔 보세요.</p>
+                </div>
               ) : (
                 <div className="empty-list">
                   <span>♡</span>
