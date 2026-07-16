@@ -351,6 +351,8 @@ svg {
   bottom: 228px;
   min-height: 75px;
   display: flex;
+  flex-direction: row;
+  flex-wrap: nowrap;
   align-items: center;
   gap: 12px;
   padding: 13px 14px 13px 16px;
@@ -431,13 +433,17 @@ svg {
 .place-actions {
   margin-left: auto;
   display: flex;
+  flex-direction: row;
+  flex-wrap: nowrap;
   align-items: center;
+  justify-content: flex-end;
   gap: 6px;
   flex: 0 0 auto;
 }
 
 .selected-place .place-actions button,
 .share-btn {
+  flex: 0 0 44px;
   width: 44px;
   height: 44px;
   display: grid;
