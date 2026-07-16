@@ -336,8 +336,8 @@ export default function Home() {
                 className="love-bubble"
                 src={loveSrc}
                 alt="곰지연씨 사랑해!"
-                width={148}
-                height={40}
+                width={176}
+                height={48}
               />
             ) : null}
             <button

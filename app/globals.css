@@ -125,8 +125,8 @@ svg {
 .love-bubble {
   flex: 0 1 auto;
   width: auto;
-  max-width: min(168px, calc(100% - 56px));
-  height: 36px;
+  max-width: min(200px, calc(100% - 56px));
+  height: 44px;
   object-fit: contain;
   object-position: right center;
   animation: love-pop 0.28s cubic-bezier(0.2, 0.8, 0.2, 1);
