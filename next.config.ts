@@ -14,6 +14,9 @@ const nextConfig: NextConfig = {
   },
   trailingSlash: true,
   outputFileTracingRoot: projectRoot,
+  env: {
+    NEXT_PUBLIC_BASE_PATH: isGithubPages ? "/GomMap" : "",
+  },
 };
 
 export default nextConfig;

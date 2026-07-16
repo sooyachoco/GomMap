@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import KakaoMap, { type SearchStatus } from "@/components/KakaoMap";
 import { Icon } from "@/components/Icon";
@@ -105,13 +106,15 @@ export default function Home() {
     <main className="app-shell">
       <section className="phone" aria-label="GomMap 모바일 앱">
         <header className="topbar">
-          <div className="brand-mark">
-            <Icon name="bookmark" />
-          </div>
-          <div>
-            <p className="eyebrow">나만의 장소 컬렉션</p>
-            <h1>GomMap</h1>
-          </div>
+          <h1>GomMap</h1>
+          <Image
+            className="profile"
+            src="/profile.png"
+            alt="곰 프로필"
+            width={48}
+            height={48}
+            priority
+          />
         </header>
 
         <div className="search-wrap">
