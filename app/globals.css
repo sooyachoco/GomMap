@@ -69,6 +69,14 @@ svg {
   box-shadow: 0 30px 80px rgba(74, 52, 34, 0.2);
 }
 
+.phone-chrome {
+  position: relative;
+  z-index: 5;
+  background: var(--cream);
+  padding-bottom: 10px;
+  box-shadow: 0 12px 28px rgba(65, 50, 38, 0.14);
+}
+
 .topbar {
   height: 72px;
   display: flex;
@@ -255,7 +263,7 @@ svg {
 
 .map {
   position: absolute;
-  inset: 176px 0 0;
+  inset: 186px 0 0;
   overflow: hidden;
   background: #e7eedf;
 }
@@ -906,7 +914,7 @@ svg {
   }
 
   .map {
-    inset: 188px 0 0;
+    inset: 198px 0 0;
   }
 
   .selected-place {

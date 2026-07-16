@@ -327,6 +327,7 @@ export default function Home() {
   return (
     <main className="app-shell">
       <section className="phone" aria-label="GomMap 모바일 앱">
+        <div className="phone-chrome">
         <header className="topbar">
           <h1>GomMap</h1>
           <div className="profile-wrap">
@@ -412,6 +413,7 @@ export default function Home() {
             </button>
           ))}
         </nav>
+        </div>
 
         <section className="map" aria-label="장소 지도">
           <KakaoMap
