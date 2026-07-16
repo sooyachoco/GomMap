@@ -599,7 +599,8 @@ svg {
 
 .sheet.collapsed .place-list,
 .sheet.collapsed .save-cta,
-.sheet.collapsed .tag-row {
+.sheet.collapsed .tag-row,
+.sheet.collapsed .tag-editor {
   display: none;
 }
 
@@ -721,6 +722,113 @@ svg {
 .tag-row.sheet-list-filter {
   flex: 0 0 auto;
   margin-bottom: 8px;
+}
+
+.tag-editor {
+  flex: 0 0 auto;
+  margin-bottom: 4px;
+}
+
+.tag-edit-toggle {
+  margin-left: auto;
+  min-height: 28px;
+  padding: 0 10px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: white;
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.tag-edit-toggle.active {
+  color: white;
+  border-color: var(--coral);
+  background: var(--coral);
+}
+
+.tag-edit-panel {
+  margin-bottom: 10px;
+  padding: 10px 12px;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  background: white;
+}
+
+.tag-edit-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.tag-edit-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+}
+
+.tag-edit-item strong {
+  flex: 1 1 auto;
+  min-width: 0;
+  font-size: 13px;
+  font-weight: 800;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.tag-edit-item input,
+.tag-add-row input {
+  flex: 1 1 auto;
+  min-width: 0;
+  height: 34px;
+  padding: 0 10px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--paper);
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.tag-edit-item button,
+.tag-add-row button {
+  flex: 0 0 auto;
+  min-height: 30px;
+  padding: 0 10px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--cream);
+  font-size: 11px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.tag-edit-item button.ghost {
+  color: var(--muted);
+  background: white;
+}
+
+.tag-edit-item button.danger {
+  color: var(--coral);
+  border-color: #f3cfc8;
+  background: #fff5f2;
+}
+
+.tag-add-row {
+  display: flex;
+  gap: 6px;
+  margin-top: 10px;
+}
+
+.tag-add-row button {
+  background: var(--coral-soft);
+  color: var(--coral);
+  border-color: transparent;
 }
 
 .place-list {

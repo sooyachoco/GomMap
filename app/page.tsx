@@ -14,11 +14,16 @@ import profileGom from "@/assets/gom.png";
 import profileChoco from "@/assets/choco.png";
 import loveBubble from "@/assets/love.png";
 import {
+  DEFAULT_SAVE_TAGS,
   filterPlacesByCategory,
   filterSavedPlacesByTag,
   getPlaceEmoji,
   getPlaceTone,
+  isReservedTagName,
+  loadCustomTags,
   loadSavedPlaces,
+  normalizeTagName,
+  persistCustomTags,
   persistSavedPlaces,
   suggestSaveTag,
   type PlaceCategoryFilter,
@@ -26,8 +31,6 @@ import {
 } from "@/lib/places";
 import { sharePlace } from "@/lib/share";
 
-const categories: PlaceCategoryFilter[] = ["전체", "맛집", "카페", "데이트", "기타"];
-const saveTags = ["맛집", "카페", "데이트", "기타"] as const;
 const gomSrc =
   typeof profileGom === "string" ? profileGom : profileGom.src;
 const chocoSrc =
@@ -53,6 +56,11 @@ export default function Home() {
   const [toast, setToast] = useState("");
   const [locateRequestId, setLocateRequestId] = useState(0);
   const [saveTag, setSaveTag] = useState<PlaceCategoryFilter>("맛집");
+  const [customTags, setCustomTags] = useState<string[]>([...DEFAULT_SAVE_TAGS]);
+  const [editingTags, setEditingTags] = useState(false);
+  const [newTagDraft, setNewTagDraft] = useState("");
+  const [renamingTag, setRenamingTag] = useState<string | null>(null);
+  const [renameDraft, setRenameDraft] = useState("");
   const [mapMode, setMapMode] = useState<"search" | "saved">("search");
   const [sheetDragY, setSheetDragY] = useState(0);
   const [isSheetDragging, setIsSheetDragging] = useState(false);
@@ -65,7 +73,14 @@ export default function Home() {
 
   useEffect(() => {
     const timer = window.setTimeout(() => {
-      setSaved(loadSavedPlaces());
+      const places = loadSavedPlaces();
+      const tags = loadCustomTags();
+      const usedTags = places
+        .map((place) => place.userTag || suggestSaveTag(place))
+        .filter((tag) => tag && !isReservedTagName(tag));
+      const merged = Array.from(new Set([...tags, ...usedTags]));
+      setSaved(places);
+      setCustomTags(merged);
       setStorageReady(true);
     }, 0);
     return () => window.clearTimeout(timer);
@@ -74,6 +89,16 @@ export default function Home() {
   useEffect(() => {
     if (storageReady) persistSavedPlaces(saved);
   }, [saved, storageReady]);
+
+  useEffect(() => {
+    if (storageReady) persistCustomTags(customTags);
+  }, [customTags, storageReady]);
+
+  const saveTags = customTags;
+  const categories = useMemo(
+    () => ["전체", ...customTags],
+    [customTags],
+  );
 
   const filteredResults = useMemo(
     () => filterPlacesByCategory(searchResults, category),
@@ -236,7 +261,7 @@ export default function Home() {
   );
 
   const updateSavedTag = useCallback(
-    (placeId: string, tag: (typeof saveTags)[number]) => {
+    (placeId: string, tag: string) => {
       setSaved((current) =>
         current.map((place) =>
           place.id === placeId ? { ...place, userTag: tag } : place,
@@ -251,6 +276,108 @@ export default function Home() {
       showToast(`${tag}(으)로 변경했어요`);
     },
     [showToast],
+  );
+
+  const addCustomTag = useCallback(() => {
+    const next = normalizeTagName(newTagDraft);
+    if (!next) {
+      showToast("분류 이름을 입력해 주세요");
+      return;
+    }
+    if (isReservedTagName(next)) {
+      showToast("‘전체’는 분류 이름으로 쓸 수 없어요");
+      return;
+    }
+    if (customTags.includes(next)) {
+      showToast("이미 있는 분류예요");
+      return;
+    }
+    setCustomTags((current) => [...current, next]);
+    setNewTagDraft("");
+    setSaveTag(next);
+    setCategory(next);
+    showToast(`‘${next}’ 분류를 추가했어요`);
+  }, [newTagDraft, customTags, showToast]);
+
+  const startRenameTag = useCallback((tag: string) => {
+    setRenamingTag(tag);
+    setRenameDraft(tag);
+  }, []);
+
+  const commitRenameTag = useCallback(() => {
+    if (!renamingTag) return;
+    const next = normalizeTagName(renameDraft);
+    if (!next) {
+      showToast("분류 이름을 입력해 주세요");
+      return;
+    }
+    if (isReservedTagName(next)) {
+      showToast("‘전체’는 분류 이름으로 쓸 수 없어요");
+      return;
+    }
+    if (next !== renamingTag && customTags.includes(next)) {
+      showToast("이미 있는 분류예요");
+      return;
+    }
+
+    const prev = renamingTag;
+    setCustomTags((current) =>
+      current.map((tag) => (tag === prev ? next : tag)),
+    );
+    setSaved((current) =>
+      current.map((place) =>
+        (place.userTag || suggestSaveTag(place)) === prev
+          ? { ...place, userTag: next }
+          : place,
+      ),
+    );
+    setSelected((current) =>
+      current && (current.userTag || suggestSaveTag(current)) === prev
+        ? { ...current, userTag: next }
+        : current,
+    );
+    setCategory((current) => (current === prev ? next : current));
+    setSaveTag((current) => (current === prev ? next : current));
+    setRenamingTag(null);
+    setRenameDraft("");
+    showToast(
+      prev === next ? "분류 이름을 유지했어요" : `‘${prev}’ → ‘${next}’`,
+    );
+  }, [renamingTag, renameDraft, customTags, showToast]);
+
+  const deleteCustomTag = useCallback(
+    (tag: string) => {
+      if (customTags.length <= 1) {
+        showToast("분류는 최소 1개 필요해요");
+        return;
+      }
+      const fallback =
+        customTags.find((item) => item !== tag && item === "기타") ||
+        customTags.find((item) => item !== tag) ||
+        "기타";
+
+      setCustomTags((current) => current.filter((item) => item !== tag));
+      setSaved((current) =>
+        current.map((place) =>
+          (place.userTag || suggestSaveTag(place)) === tag
+            ? { ...place, userTag: fallback }
+            : place,
+        ),
+      );
+      setSelected((current) =>
+        current && (current.userTag || suggestSaveTag(current)) === tag
+          ? { ...current, userTag: fallback }
+          : current,
+      );
+      setCategory((current) => (current === tag ? "전체" : current));
+      setSaveTag((current) => (current === tag ? fallback : current));
+      if (renamingTag === tag) {
+        setRenamingTag(null);
+        setRenameDraft("");
+      }
+      showToast(`‘${tag}’을(를) 삭제하고 ‘${fallback}’(으)로 옮겼어요`);
+    },
+    [customTags, renamingTag, showToast],
   );
 
   const modeLabel = useMemo(() => {
@@ -471,7 +598,9 @@ export default function Home() {
                   : `${category} 결과가 없어요`}
                 <br />
                 <small>
-                  {category === "데이트" || category === "기타"
+                  {customTags.includes(category) &&
+                  category !== "맛집" &&
+                  category !== "카페"
                     ? "저장한 장소에서 확인해 보세요"
                     : "전체 필터로 다시 살펴보세요"}
                 </small>
@@ -613,7 +742,10 @@ export default function Home() {
                 onPointerDown={(event) => event.stopPropagation()}
                 onClick={() => {
                   if (expanded) showSavedOnMap();
-                  else setExpanded(true);
+                  else {
+                    setExpanded(true);
+                    setEditingTags(false);
+                  }
                 }}
               >
                 {expanded ? "지도 보기" : "전체 보기"}
@@ -622,19 +754,114 @@ export default function Home() {
           </div>
 
           {expanded ? (
-            <div className="tag-row sheet-list-filter" aria-label="저장 목록 태그 필터">
-              <span>분류</span>
-              {categories.map((item) => (
+            <div className="tag-editor">
+              <div className="tag-row sheet-list-filter" aria-label="저장 목록 태그 필터">
+                <span>분류</span>
+                {categories.map((item) => (
+                  <button
+                    key={item}
+                    type="button"
+                    className={category === item ? "active" : ""}
+                    aria-pressed={category === item}
+                    onClick={() => setCategory(item)}
+                  >
+                    {item}
+                  </button>
+                ))}
                 <button
-                  key={item}
                   type="button"
-                  className={category === item ? "active" : ""}
-                  aria-pressed={category === item}
-                  onClick={() => setCategory(item)}
+                  className={`tag-edit-toggle${editingTags ? " active" : ""}`}
+                  aria-pressed={editingTags}
+                  onClick={() => {
+                    setEditingTags((value) => !value);
+                    setRenamingTag(null);
+                    setRenameDraft("");
+                  }}
                 >
-                  {item}
+                  {editingTags ? "완료" : "편집"}
                 </button>
-              ))}
+              </div>
+
+              {editingTags ? (
+                <div className="tag-edit-panel" aria-label="분류 편집">
+                  <ul className="tag-edit-list">
+                    {saveTags.map((tag) => (
+                      <li key={tag} className="tag-edit-item">
+                        {renamingTag === tag ? (
+                          <>
+                            <input
+                              value={renameDraft}
+                              onChange={(event) =>
+                                setRenameDraft(event.target.value)
+                              }
+                              onKeyDown={(event) => {
+                                if (event.key === "Enter") {
+                                  event.preventDefault();
+                                  commitRenameTag();
+                                }
+                              }}
+                              aria-label={`${tag} 새 이름`}
+                              maxLength={12}
+                              autoFocus
+                            />
+                            <button
+                              type="button"
+                              onClick={commitRenameTag}
+                            >
+                              저장
+                            </button>
+                            <button
+                              type="button"
+                              className="ghost"
+                              onClick={() => {
+                                setRenamingTag(null);
+                                setRenameDraft("");
+                              }}
+                            >
+                              취소
+                            </button>
+                          </>
+                        ) : (
+                          <>
+                            <strong>{tag}</strong>
+                            <button
+                              type="button"
+                              onClick={() => startRenameTag(tag)}
+                            >
+                              이름 변경
+                            </button>
+                            <button
+                              type="button"
+                              className="danger"
+                              onClick={() => deleteCustomTag(tag)}
+                            >
+                              삭제
+                            </button>
+                          </>
+                        )}
+                      </li>
+                    ))}
+                  </ul>
+                  <div className="tag-add-row">
+                    <input
+                      value={newTagDraft}
+                      onChange={(event) => setNewTagDraft(event.target.value)}
+                      onKeyDown={(event) => {
+                        if (event.key === "Enter") {
+                          event.preventDefault();
+                          addCustomTag();
+                        }
+                      }}
+                      placeholder="새 분류 이름"
+                      aria-label="새 분류 이름"
+                      maxLength={12}
+                    />
+                    <button type="button" onClick={addCustomTag}>
+                      추가
+                    </button>
+                  </div>
+                </div>
+              ) : null}
             </div>
           ) : null}
 

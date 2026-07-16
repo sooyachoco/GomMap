@@ -1,4 +1,4 @@
-export type PlaceCategoryFilter = "전체" | "맛집" | "카페" | "데이트" | "기타";
+export type PlaceCategoryFilter = string;
 
 export type SavedPlace = {
   id: string;
@@ -12,10 +12,13 @@ export type SavedPlace = {
   latitude: number;
   longitude: number;
   note?: string;
-  userTag?: PlaceCategoryFilter;
+  userTag?: string;
 };
 
 export const SAVED_PLACES_KEY = "gommap:saved-places:v1";
+export const CUSTOM_TAGS_KEY = "gommap:custom-tags:v1";
+
+export const DEFAULT_SAVE_TAGS = ["맛집", "카페", "데이트", "기타"] as const;
 
 export const DEFAULT_CENTER = {
   latitude: 37.5665,
@@ -56,10 +59,18 @@ function deriveCategoryLabel(categoryName: string): string {
   return leaf || categoryName || "장소";
 }
 
-export function suggestSaveTag(place: SavedPlace): PlaceCategoryFilter {
+export function suggestSaveTag(place: SavedPlace): string {
   if (place.categoryGroupCode === "FD6") return "맛집";
   if (place.categoryGroupCode === "CE7") return "카페";
   return "기타";
+}
+
+export function normalizeTagName(value: string): string {
+  return value.trim().replace(/\s+/g, " ");
+}
+
+export function isReservedTagName(value: string): boolean {
+  return value === "전체";
 }
 
 export function filterPlacesByCategory(
@@ -68,19 +79,21 @@ export function filterPlacesByCategory(
 ): SavedPlace[] {
   if (category === "전체") return places;
   if (category === "맛집") {
-    return places.filter((place) => place.categoryGroupCode === "FD6");
+    return places.filter(
+      (place) =>
+        place.categoryGroupCode === "FD6" ||
+        (place.userTag || suggestSaveTag(place)) === "맛집",
+    );
   }
   if (category === "카페") {
-    return places.filter((place) => place.categoryGroupCode === "CE7");
-  }
-  // 데이트/기타: 카카오 공식 카테고리가 아니므로 사용자 태그로만 필터
-  if (category === "데이트") {
     return places.filter(
-      (place) => place.userTag === "데이트" || place.category === "데이트",
+      (place) =>
+        place.categoryGroupCode === "CE7" ||
+        (place.userTag || suggestSaveTag(place)) === "카페",
     );
   }
   return places.filter(
-    (place) => place.userTag === "기타" || place.category === "기타",
+    (place) => (place.userTag || suggestSaveTag(place)) === category,
   );
 }
 
@@ -90,7 +103,9 @@ export function filterSavedPlacesByTag(
   category: PlaceCategoryFilter,
 ): SavedPlace[] {
   if (category === "전체") return places;
-  return places.filter((place) => (place.userTag || suggestSaveTag(place)) === category);
+  return places.filter(
+    (place) => (place.userTag || suggestSaveTag(place)) === category,
+  );
 }
 
 export function loadSavedPlaces(): SavedPlace[] {
@@ -111,6 +126,38 @@ export function persistSavedPlaces(places: SavedPlace[]): void {
   window.localStorage.setItem(SAVED_PLACES_KEY, JSON.stringify(places));
 }
 
+export function loadCustomTags(): string[] {
+  if (typeof window === "undefined") return [...DEFAULT_SAVE_TAGS];
+  try {
+    const raw = window.localStorage.getItem(CUSTOM_TAGS_KEY);
+    if (!raw) return [...DEFAULT_SAVE_TAGS];
+    const parsed: unknown = JSON.parse(raw);
+    if (!Array.isArray(parsed)) return [...DEFAULT_SAVE_TAGS];
+    const tags = parsed
+      .filter((item): item is string => typeof item === "string")
+      .map(normalizeTagName)
+      .filter((tag) => tag && !isReservedTagName(tag));
+    return tags.length ? Array.from(new Set(tags)) : [...DEFAULT_SAVE_TAGS];
+  } catch {
+    return [...DEFAULT_SAVE_TAGS];
+  }
+}
+
+export function persistCustomTags(tags: string[]): void {
+  if (typeof window === "undefined") return;
+  const cleaned = Array.from(
+    new Set(
+      tags
+        .map(normalizeTagName)
+        .filter((tag) => tag && !isReservedTagName(tag)),
+    ),
+  );
+  window.localStorage.setItem(
+    CUSTOM_TAGS_KEY,
+    JSON.stringify(cleaned.length ? cleaned : [...DEFAULT_SAVE_TAGS]),
+  );
+}
+
 function isSavedPlace(value: unknown): value is SavedPlace {
   if (!value || typeof value !== "object") return false;
   const place = value as Record<string, unknown>;
@@ -125,24 +172,17 @@ function isSavedPlace(value: unknown): value is SavedPlace {
 }
 
 export function getPlaceTone(place: SavedPlace): string {
-  if (place.categoryGroupCode === "CE7" || place.category === "카페") {
-    return "sunny";
-  }
-  if (place.categoryGroupCode === "FD6" || place.category === "맛집") {
-    return "table";
-  }
-  if (place.userTag === "데이트" || place.category === "데이트") {
-    return "evening";
-  }
+  const tag = place.userTag || suggestSaveTag(place);
+  if (place.categoryGroupCode === "CE7" || tag === "카페") return "sunny";
+  if (place.categoryGroupCode === "FD6" || tag === "맛집") return "table";
+  if (tag === "데이트") return "evening";
   return "forest";
 }
 
 export function getPlaceEmoji(place: SavedPlace): string {
-  if (place.categoryGroupCode === "CE7" || place.category === "카페") {
-    return "☕";
-  }
-  if (place.categoryGroupCode === "FD6" || place.category === "맛집") {
-    return "🍽";
-  }
+  const tag = place.userTag || suggestSaveTag(place);
+  if (place.categoryGroupCode === "CE7" || tag === "카페") return "☕";
+  if (place.categoryGroupCode === "FD6" || tag === "맛집") return "🍽";
+  if (tag === "데이트") return "✨";
   return "🌿";
 }
