@@ -80,12 +80,12 @@ export default function Home() {
         (place.category === "카페" || place.category === "맛집"
           ? place.category
           : saveTag === "전체"
-            ? "데이트"
+            ? "기타"
             : saveTag);
 
       const toSave: SavedPlace = {
         ...place,
-        userTag: nextTag === "전체" ? "데이트" : nextTag,
+        userTag: nextTag === "전체" ? "기타" : nextTag,
         note: place.note || place.roadAddress || place.address,
       };
 
@@ -291,7 +291,7 @@ export default function Home() {
           {selected && !isSelectedSaved ? (
             <div className="tag-row" aria-label="저장 태그 선택">
               <span>저장 태그</span>
-              {(["맛집", "카페", "데이트"] as const).map((tag) => (
+              {(["맛집", "카페", "데이트", "기타"] as const).map((tag) => (
                 <button
                   key={tag}
                   type="button"

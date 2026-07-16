@@ -1,4 +1,4 @@
-export type PlaceCategoryFilter = "전체" | "맛집" | "카페" | "데이트";
+export type PlaceCategoryFilter = "전체" | "맛집" | "카페" | "데이트" | "기타";
 
 export type SavedPlace = {
   id: string;
@@ -72,9 +72,14 @@ export function filterPlacesByCategory(
   if (category === "카페") {
     return places.filter((place) => place.categoryGroupCode === "CE7");
   }
-  // 데이트: 카카오 공식 카테고리가 아니므로 사용자 태그로만 필터
+  // 데이트/기타: 카카오 공식 카테고리가 아니므로 사용자 태그로만 필터
+  if (category === "데이트") {
+    return places.filter(
+      (place) => place.userTag === "데이트" || place.category === "데이트",
+    );
+  }
   return places.filter(
-    (place) => place.userTag === "데이트" || place.category === "데이트",
+    (place) => place.userTag === "기타" || place.category === "기타",
   );
 }
 
