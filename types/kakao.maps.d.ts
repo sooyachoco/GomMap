@@ -85,6 +85,7 @@ declare global {
     setLevel: (level: number) => void;
     getLevel: () => number;
     setBounds: (bounds: KakaoLatLngBounds, padding?: number) => void;
+    panBy: (x: number, y: number) => void;
     relayout: () => void;
   }
 

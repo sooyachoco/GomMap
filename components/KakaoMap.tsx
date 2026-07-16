@@ -293,14 +293,19 @@ export default function KakaoMap({
     const entry = markersRef.current.find(
       (item) => item.place.id === selectedPlaceId,
     );
-    if (entry) {
-      mapRef.current.setCenter(
-        new window.kakao.maps.LatLng(
-          entry.place.latitude,
-          entry.place.longitude,
-        ),
-      );
-    }
+    if (!entry) return;
+
+    const map = mapRef.current;
+    map.setCenter(
+      new window.kakao.maps.LatLng(
+        entry.place.latitude,
+        entry.place.longitude,
+      ),
+    );
+    // 하단 장소 카드에 가리지 않도록 마커를 화면 기준 120px 위로 보이게 패닝
+    window.requestAnimationFrame(() => {
+      map.panBy(0, 120);
+    });
   }, [selectedPlaceId, ready, syncMarkerStyles]);
 
   useEffect(() => {
