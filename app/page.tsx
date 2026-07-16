@@ -84,6 +84,66 @@ export default function Home() {
     selected && saved.some((place) => place.id === selected.id),
   );
 
+  const selectedVisible = useMemo(() => {
+    if (!selected) return null;
+
+    if (mapMode === "saved") {
+      return savedOnMap.some((place) => place.id === selected.id)
+        ? selected
+        : null;
+    }
+
+    const fromSearch = searchResults.some((place) => place.id === selected.id);
+    if (fromSearch) {
+      return filteredResults.some((place) => place.id === selected.id)
+        ? selected
+        : null;
+    }
+
+    if (isSelectedSaved) {
+      return filterSavedPlacesByTag([selected], category).length > 0
+        ? selected
+        : null;
+    }
+
+    return selected;
+  }, [
+    selected,
+    mapMode,
+    savedOnMap,
+    searchResults,
+    filteredResults,
+    isSelectedSaved,
+    category,
+  ]);
+
+  const isVisibleSaved = Boolean(
+    selectedVisible && saved.some((place) => place.id === selectedVisible.id),
+  );
+
+  // 상단 분류를 바꾸면 선택 카드·목록·지도가 같은 태그만 보도록 맞춤
+  useEffect(() => {
+    if (mapMode === "saved") {
+      setSelected((current) => {
+        if (current && savedOnMap.some((place) => place.id === current.id)) {
+          return current;
+        }
+        return savedOnMap[0] ?? null;
+      });
+      return;
+    }
+
+    setSelected((current) => {
+      if (!current) return current;
+      const fromSearch = searchResults.some((place) => place.id === current.id);
+      if (!fromSearch) return current;
+      if (filteredResults.some((place) => place.id === current.id)) {
+        return current;
+      }
+      return filteredResults[0] ?? null;
+    });
+  }, [category, mapMode, savedOnMap, filteredResults, searchResults]);
+
   const showToast = useCallback((message: string) => {
     setToast(message);
     window.setTimeout(() => setToast(""), 1800);
@@ -335,7 +395,7 @@ export default function Home() {
           <KakaoMap
             searchRequest={searchRequest}
             category={category}
-            selectedPlaceId={selected?.id ?? null}
+            selectedPlaceId={selectedVisible?.id ?? null}
             locateRequestId={locateRequestId}
             pinnedPlaces={pinnedPlaces}
             onSelectPlace={setSelected}
@@ -403,31 +463,32 @@ export default function Home() {
             <Icon name="target" />
           </button>
 
-          {selected ? (
+          {selectedVisible ? (
             <article className="selected-place">
               <div className="place-info">
                 <div className="place-title-row">
-                  <strong>{selected.name}</strong>
-                  {selected.category ? (
-                    <em className="category-tag">{selected.category}</em>
+                  <strong>{selectedVisible.name}</strong>
+                  {selectedVisible.category ? (
+                    <em className="category-tag">{selectedVisible.category}</em>
                   ) : null}
                 </div>
                 <small>
-                  {selected.roadAddress || selected.address}
-                  {selected.phone ? ` · ${selected.phone}` : ""}
+                  {selectedVisible.roadAddress || selectedVisible.address}
+                  {selectedVisible.phone ? ` · ${selectedVisible.phone}` : ""}
                 </small>
-                {isSelectedSaved ? (
+                {isVisibleSaved ? (
                   <div className="tag-row compact" aria-label="저장 태그 변경">
                     {saveTags.map((tag) => (
                       <button
                         key={tag}
                         type="button"
                         className={
-                          (selected.userTag || suggestSaveTag(selected)) === tag
+                          (selectedVisible.userTag ||
+                            suggestSaveTag(selectedVisible)) === tag
                             ? "active"
                             : ""
                         }
-                        onClick={() => updateSavedTag(selected.id, tag)}
+                        onClick={() => updateSavedTag(selectedVisible.id, tag)}
                       >
                         {tag}
                       </button>
@@ -448,9 +509,9 @@ export default function Home() {
                   </div>
                 )}
                 <div className="place-actions-inline">
-                  {selected.placeUrl ? (
+                  {selectedVisible.placeUrl ? (
                     <a
-                      href={selected.placeUrl}
+                      href={selectedVisible.placeUrl}
                       target="_blank"
                       rel="noreferrer"
                       className="place-link"
@@ -464,17 +525,17 @@ export default function Home() {
                 <button
                   type="button"
                   className="share-btn"
-                  onClick={() => handleShare(selected)}
+                  onClick={() => handleShare(selectedVisible)}
                   aria-label="선택한 장소 공유"
                 >
                   <Icon name="share" />
                 </button>
                 <button
                   type="button"
-                  className={`heart${isSelectedSaved ? " saved" : ""}`}
-                  onClick={() => toggleSaved(selected, saveTag)}
+                  className={`heart${isVisibleSaved ? " saved" : ""}`}
+                  onClick={() => toggleSaved(selectedVisible, saveTag)}
                   aria-label={
-                    isSelectedSaved ? "선택한 장소 저장 해제" : "선택한 장소 저장"
+                    isVisibleSaved ? "선택한 장소 저장 해제" : "선택한 장소 저장"
                   }
                 >
                   <Icon name="heart" />
@@ -520,10 +581,7 @@ export default function Home() {
               <div>
                 <p>MY PLACES</p>
                 <h2>
-                  저장한 장소{" "}
-                  <span>
-                    {category === "전체" ? saved.length : savedOnMap.length}
-                  </span>
+                  저장한 장소 <span>{savedOnMap.length}</span>
                 </h2>
               </div>
               <button
@@ -556,7 +614,7 @@ export default function Home() {
             </div>
           ) : null}
 
-          {expanded && selected && !isSelectedSaved ? (
+          {expanded && selectedVisible && !isVisibleSaved ? (
             <div className="tag-row" aria-label="저장 태그 선택">
               <span>저장 태그</span>
               {saveTags.map((tag) => (
@@ -668,11 +726,11 @@ export default function Home() {
             </div>
           ) : null}
 
-          {expanded && selected && !isSelectedSaved ? (
+          {expanded && selectedVisible && !isVisibleSaved ? (
             <button
               className="save-cta"
               type="button"
-              onClick={() => toggleSaved(selected, saveTag)}
+              onClick={() => toggleSaved(selectedVisible, saveTag)}
             >
               <Icon name="bookmark" />
               이 장소 저장하기
