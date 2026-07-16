@@ -15,9 +15,12 @@ export const metadata: Metadata = {
     statusBarStyle: "default",
   },
   icons: {
-    icon: `${basePath}/favicon.svg`,
-    shortcut: `${basePath}/favicon.svg`,
-    apple: `${basePath}/apple-touch-icon.png`,
+    icon: [
+      { url: `${basePath}/gom.png`, type: "image/png" },
+      { url: `${basePath}/favicon.svg`, type: "image/svg+xml" },
+    ],
+    shortcut: `${basePath}/gom.png`,
+    apple: `${basePath}/gom.png`,
   },
 };
 
