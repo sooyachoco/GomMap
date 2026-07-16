@@ -412,11 +412,6 @@ export default function Home() {
             </button>
           ))}
         </nav>
-        <p className="chips-caption" aria-live="polite">
-          {mapMode === "saved"
-            ? "저장 태그로 지도를 보고 있어요"
-            : "검색 결과를 카테고리로 걸러요"}
-        </p>
 
         <section className="map" aria-label="장소 지도">
           <KakaoMap
