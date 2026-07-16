@@ -1,6 +1,5 @@
 "use client";
 
-import Image from "next/image";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import KakaoMap, { type SearchStatus } from "@/components/KakaoMap";
 import { Icon } from "@/components/Icon";
@@ -16,6 +15,7 @@ import {
 } from "@/lib/places";
 
 const categories: PlaceCategoryFilter[] = ["전체", "맛집", "카페", "데이트", "기타"];
+const profileSrc = `${process.env.NEXT_PUBLIC_BASE_PATH || ""}/profile.png`;
 
 export default function Home() {
   const [category, setCategory] = useState<PlaceCategoryFilter>("전체");
@@ -107,13 +107,13 @@ export default function Home() {
       <section className="phone" aria-label="GomMap 모바일 앱">
         <header className="topbar">
           <h1>GomMap</h1>
-          <Image
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
             className="profile"
-            src="/profile.png"
+            src={profileSrc}
             alt="곰 프로필"
             width={48}
             height={48}
-            priority
           />
         </header>
 
