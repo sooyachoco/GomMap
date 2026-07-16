@@ -1,6 +1,13 @@
 import type { ReactNode } from "react";
 
-type IconName = "search" | "bookmark" | "heart" | "target" | "close" | "share";
+type IconName =
+  | "search"
+  | "bookmark"
+  | "heart"
+  | "target"
+  | "close"
+  | "share"
+  | "diary";
 
 const paths: Record<IconName, ReactNode> = {
   search: (
@@ -33,8 +40,14 @@ const paths: Record<IconName, ReactNode> = {
       <path d="m8.2 13.2 7.5 4.1M15.7 6.7l-7.5 4.1" />
     </>
   ),
+  diary: (
+    <>
+      <path d="M6 4.5h11.5a1.5 1.5 0 0 1 1.5 1.5v12a1.5 1.5 0 0 1-1.5 1.5H6" />
+      <path d="M6 4.5a2 2 0 0 0-2 2v11a2 2 0 0 0 2 2" />
+      <path d="M9 8.5h7M9 12h7M9 15.5h4" />
+    </>
+  ),
 };
-
 export function Icon({ name }: { name: IconName }) {
   return (
     <svg viewBox="0 0 24 24" aria-hidden="true">

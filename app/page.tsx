@@ -479,6 +479,15 @@ export default function Home() {
                 height={48}
               />
             ) : null}
+            <a
+              className="diary-link"
+              href="https://sooyachoco.github.io/schedule/"
+              target="_blank"
+              rel="noreferrer"
+              aria-label="지연 스케줄 다이어리 열기"
+            >
+              <Icon name="diary" />
+            </a>
             <button
               type="button"
               className="profile-btn"
