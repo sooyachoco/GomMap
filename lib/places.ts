@@ -40,7 +40,7 @@ export function mapKakaoPlace(result: KakaoPlaceLike): SavedPlace {
   return {
     id: result.id,
     name: result.place_name,
-    category: deriveCategoryLabel(result.category_name, groupCode),
+    category: deriveCategoryLabel(result.category_name),
     categoryGroupCode: groupCode,
     address: result.address_name,
     roadAddress: result.road_address_name || undefined,
@@ -51,14 +51,15 @@ export function mapKakaoPlace(result: KakaoPlaceLike): SavedPlace {
   };
 }
 
-function deriveCategoryLabel(
-  categoryName: string,
-  groupCode?: string,
-): string {
-  if (groupCode === "FD6") return "맛집";
-  if (groupCode === "CE7") return "카페";
+function deriveCategoryLabel(categoryName: string): string {
   const leaf = categoryName.split(">").pop()?.trim();
   return leaf || categoryName || "장소";
+}
+
+export function suggestSaveTag(place: SavedPlace): PlaceCategoryFilter {
+  if (place.categoryGroupCode === "FD6") return "맛집";
+  if (place.categoryGroupCode === "CE7") return "카페";
+  return "기타";
 }
 
 export function filterPlacesByCategory(

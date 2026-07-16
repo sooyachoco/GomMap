@@ -384,18 +384,31 @@ svg {
   display: grid;
 }
 
-.selected-place span {
-  color: var(--coral);
-  font-size: 11px;
-  font-weight: 800;
+.place-title-row {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  min-width: 0;
 }
 
-.selected-place strong {
+.place-title-row strong,
+.place-copy .place-name {
+  min-width: 0;
   font-size: 15px;
-  margin: 2px 0;
+  font-weight: 800;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+}
+
+.category-tag {
+  flex: 0 0 auto;
+  margin: 0;
+  color: #9a9088;
+  font-size: 11px;
+  font-style: normal;
+  font-weight: 500;
+  white-space: nowrap;
 }
 
 .selected-place small {
@@ -604,10 +617,15 @@ svg {
 
 .place-copy h3 {
   margin: 2px 0;
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  min-width: 0;
   font-size: 15px;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+}
+
+.place-copy h3 .place-name {
+  flex: 0 1 auto;
 }
 
 .place-copy p {

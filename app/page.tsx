@@ -9,6 +9,7 @@ import {
   getPlaceTone,
   loadSavedPlaces,
   persistSavedPlaces,
+  suggestSaveTag,
   type PlaceCategoryFilter,
   type SavedPlace,
 } from "@/lib/places";
@@ -77,8 +78,8 @@ export default function Home() {
 
       const nextTag =
         tag ??
-        (place.category === "카페" || place.category === "맛집"
-          ? place.category
+        (place.categoryGroupCode === "FD6" || place.categoryGroupCode === "CE7"
+          ? suggestSaveTag(place)
           : saveTag === "전체"
             ? "기타"
             : saveTag);
@@ -227,8 +228,12 @@ export default function Home() {
           {selected ? (
             <article className="selected-place">
               <div>
-                <span>{selected.category}</span>
-                <strong>{selected.name}</strong>
+                <div className="place-title-row">
+                  <strong>{selected.name}</strong>
+                  {selected.category ? (
+                    <em className="category-tag">{selected.category}</em>
+                  ) : null}
+                </div>
                 <small>
                   {selected.roadAddress || selected.address}
                   {selected.phone ? ` · ${selected.phone}` : ""}
@@ -256,8 +261,9 @@ export default function Home() {
           ) : (
             <article className="selected-place placeholder">
               <div>
-                <span>안내</span>
-                <strong>장소를 검색해 보세요</strong>
+                <div className="place-title-row">
+                  <strong>장소를 검색해 보세요</strong>
+                </div>
                 <small>마커를 선택하면 상세 정보가 나타나요</small>
               </div>
             </article>
@@ -321,8 +327,13 @@ export default function Home() {
                     <span>{getPlaceEmoji(place)}</span>
                   </div>
                   <div className="place-copy">
-                    <small>{place.userTag || place.category}</small>
-                    <h3>{place.name}</h3>
+                    <small>{place.userTag || suggestSaveTag(place)}</small>
+                    <h3>
+                      <span className="place-name">{place.name}</span>
+                      {place.category ? (
+                        <em className="category-tag">{place.category}</em>
+                      ) : null}
+                    </h3>
                     <p>{place.note || place.address}</p>
                   </div>
                   <button
