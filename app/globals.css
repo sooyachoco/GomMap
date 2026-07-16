@@ -219,9 +219,18 @@ svg {
 .chips {
   display: flex;
   gap: 6px;
-  padding: 8px 16px 4px;
+  padding: 8px 16px 10px;
   overflow-x: auto;
+  overflow-y: hidden;
   scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
+  touch-action: pan-x;
+  overscroll-behavior-x: contain;
+  cursor: grab;
+}
+
+.chips:active {
+  cursor: grabbing;
 }
 
 .chips::-webkit-scrollbar {
@@ -229,11 +238,11 @@ svg {
 }
 
 .chips button {
-  flex: 1 1 0;
-  min-width: 0;
+  flex: 0 0 auto;
+  min-width: max-content;
   min-height: 34px;
   height: 34px;
-  padding: 0 6px;
+  padding: 0 14px;
   border: 1px solid var(--line);
   border-radius: 16px;
   background: white;
@@ -674,7 +683,15 @@ svg {
   gap: 8px;
   margin-bottom: 10px;
   overflow-x: auto;
+  overflow-y: hidden;
   scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
+  touch-action: pan-x;
+  overscroll-behavior-x: contain;
+}
+
+.tag-row::-webkit-scrollbar {
+  display: none;
 }
 
 .tag-row.compact {
@@ -720,6 +737,19 @@ svg {
 .tag-row.sheet-list-filter {
   flex: 0 0 auto;
   margin-bottom: 8px;
+}
+
+.tag-row.sheet-list-filter .tag-edit-toggle {
+  position: sticky;
+  right: 0;
+  margin-left: auto;
+  background: var(--cream);
+  box-shadow: -8px 0 12px var(--cream);
+}
+
+.tag-row.sheet-list-filter .tag-edit-toggle.active {
+  background: var(--coral);
+  box-shadow: -8px 0 12px rgba(255, 248, 239, 0.9);
 }
 
 .tag-editor {

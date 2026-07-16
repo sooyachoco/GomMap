@@ -394,6 +394,68 @@ export default function Home() {
     return "검색하거나 저장 장소를 열어보세요";
   }, [mapMode, category, savedOnMap.length, searchStatus, filteredResults.length]);
 
+  const chipsScrollRef = useRef<HTMLElement | null>(null);
+  const sheetFilterScrollRef = useRef<HTMLDivElement | null>(null);
+  const hScrollDragRef = useRef<{
+    el: HTMLElement;
+    pointerId: number;
+    startX: number;
+    startScrollLeft: number;
+    moved: boolean;
+  } | null>(null);
+
+  const onHScrollPointerDown = useCallback(
+    (event: ReactPointerEvent<HTMLElement>) => {
+      if (event.button !== 0) return;
+      const el = event.currentTarget;
+      if (el.scrollWidth <= el.clientWidth) return;
+      hScrollDragRef.current = {
+        el,
+        pointerId: event.pointerId,
+        startX: event.clientX,
+        startScrollLeft: el.scrollLeft,
+        moved: false,
+      };
+      el.setPointerCapture(event.pointerId);
+    },
+    [],
+  );
+
+  const onHScrollPointerMove = useCallback(
+    (event: ReactPointerEvent<HTMLElement>) => {
+      const drag = hScrollDragRef.current;
+      if (!drag || drag.pointerId !== event.pointerId) return;
+      const deltaX = event.clientX - drag.startX;
+      if (Math.abs(deltaX) > 4) drag.moved = true;
+      drag.el.scrollLeft = drag.startScrollLeft - deltaX;
+    },
+    [],
+  );
+
+  const onHScrollPointerUp = useCallback(
+    (event: ReactPointerEvent<HTMLElement>) => {
+      const drag = hScrollDragRef.current;
+      if (!drag || drag.pointerId !== event.pointerId) return;
+      if (event.currentTarget.hasPointerCapture(event.pointerId)) {
+        event.currentTarget.releasePointerCapture(event.pointerId);
+      }
+      if (drag.moved) {
+        // 드래그 직후 버튼 click 방지
+        const blockClick = (clickEvent: Event) => {
+          clickEvent.preventDefault();
+          clickEvent.stopPropagation();
+          drag.el.removeEventListener("click", blockClick, true);
+        };
+        drag.el.addEventListener("click", blockClick, true);
+        window.setTimeout(() => {
+          drag.el.removeEventListener("click", blockClick, true);
+        }, 0);
+      }
+      hScrollDragRef.current = null;
+    },
+    [],
+  );
+
   const finishSheetDrag = useCallback(
     (deltaY: number) => {
       setIsSheetDragging(false);
@@ -527,7 +589,15 @@ export default function Home() {
           </button>
         </div>
 
-        <nav className="chips" aria-label={mapMode === "saved" ? "저장 태그 필터" : "검색 결과 필터"}>
+        <nav
+          ref={chipsScrollRef}
+          className="chips"
+          aria-label={mapMode === "saved" ? "저장 태그 필터" : "검색 결과 필터"}
+          onPointerDown={onHScrollPointerDown}
+          onPointerMove={onHScrollPointerMove}
+          onPointerUp={onHScrollPointerUp}
+          onPointerCancel={onHScrollPointerUp}
+        >
           {categories.map((item) => (
             <button
               key={item}
@@ -755,7 +825,15 @@ export default function Home() {
 
           {expanded ? (
             <div className="tag-editor">
-              <div className="tag-row sheet-list-filter" aria-label="저장 목록 태그 필터">
+              <div
+                ref={sheetFilterScrollRef}
+                className="tag-row sheet-list-filter"
+                aria-label="저장 목록 태그 필터"
+                onPointerDown={onHScrollPointerDown}
+                onPointerMove={onHScrollPointerMove}
+                onPointerUp={onHScrollPointerUp}
+                onPointerCancel={onHScrollPointerUp}
+              >
                 <span>분류</span>
                 {categories.map((item) => (
                   <button
