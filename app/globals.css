@@ -86,6 +86,13 @@ svg {
   padding: 18px 20px 8px;
 }
 
+.brand-wrap {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+
 .topbar h1 {
   margin: 0;
   font-size: 28px;
@@ -94,20 +101,10 @@ svg {
   color: var(--ink);
 }
 
-.profile-wrap {
-  position: relative;
-  display: flex;
-  align-items: center;
-  justify-content: flex-end;
-  gap: 8px;
-  min-width: 0;
-  flex: 1;
-}
-
 .diary-link {
   flex: 0 0 auto;
-  width: 40px;
-  height: 40px;
+  width: 36px;
+  height: 36px;
   display: grid;
   place-items: center;
   border: 1px solid var(--line);
@@ -130,8 +127,18 @@ svg {
 }
 
 .diary-link svg {
-  width: 20px;
-  height: 20px;
+  width: 18px;
+  height: 18px;
+}
+
+.profile-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 6px;
+  min-width: 0;
+  flex: 1;
 }
 
 .profile-btn {
