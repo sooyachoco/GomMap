@@ -93,6 +93,20 @@ svg {
   min-width: 0;
 }
 
+.brand-btn {
+  padding: 0;
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+  text-align: left;
+}
+
+.brand-btn:focus-visible {
+  outline: 2px solid var(--coral);
+  outline-offset: 4px;
+  border-radius: 8px;
+}
+
 .topbar h1 {
   margin: 0;
   font-size: 28px;

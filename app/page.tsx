@@ -38,6 +38,12 @@ const chocoSrc =
 const loveSrc =
   typeof loveBubble === "string" ? loveBubble : loveBubble.src;
 const SHEET_DRAG_THRESHOLD = 48;
+const basePath = process.env.NEXT_PUBLIC_BASE_PATH || "";
+
+type BeforeInstallPromptEvent = Event & {
+  prompt: () => Promise<void>;
+  userChoice: Promise<{ outcome: "accepted" | "dismissed" }>;
+};
 
 export default function Home() {
   const [category, setCategory] = useState<PlaceCategoryFilter>("전체");
@@ -65,6 +71,7 @@ export default function Home() {
   const [sheetDragY, setSheetDragY] = useState(0);
   const [isSheetDragging, setIsSheetDragging] = useState(false);
   const [showChoco, setShowChoco] = useState(false);
+  const installPromptRef = useRef<BeforeInstallPromptEvent | null>(null);
   const sheetDragRef = useRef<{
     pointerId: number;
     startY: number;
@@ -93,6 +100,24 @@ export default function Home() {
   useEffect(() => {
     if (storageReady) persistCustomTags(customTags);
   }, [customTags, storageReady]);
+
+  useEffect(() => {
+    if (!("serviceWorker" in navigator)) return;
+    navigator.serviceWorker
+      .register(`${basePath}/sw.js`)
+      .catch(() => undefined);
+  }, []);
+
+  useEffect(() => {
+    const onBeforeInstall = (event: Event) => {
+      event.preventDefault();
+      installPromptRef.current = event as BeforeInstallPromptEvent;
+    };
+    window.addEventListener("beforeinstallprompt", onBeforeInstall);
+    return () => {
+      window.removeEventListener("beforeinstallprompt", onBeforeInstall);
+    };
+  }, []);
 
   const saveTags = customTags;
   const categories = useMemo(
@@ -180,6 +205,32 @@ export default function Home() {
     setToast(message);
     window.setTimeout(() => setToast(""), 1800);
   }, []);
+
+  const handleInstallShortcut = useCallback(async () => {
+    if (window.matchMedia("(display-mode: standalone)").matches) {
+      showToast("이미 홈 화면에 추가되어 있어요");
+      return;
+    }
+
+    const deferred = installPromptRef.current;
+    if (deferred) {
+      await deferred.prompt();
+      const choice = await deferred.userChoice;
+      installPromptRef.current = null;
+      if (choice.outcome === "accepted") {
+        showToast("홈 화면에 바로가기를 추가했어요");
+      }
+      return;
+    }
+
+    const isIOS = /iPhone|iPad|iPod/i.test(navigator.userAgent);
+    if (isIOS) {
+      showToast("공유 → '홈 화면에 추가'를 눌러 주세요");
+      return;
+    }
+
+    showToast("브라우저 메뉴에서 '홈 화면에 추가'를 찾아 주세요");
+  }, [showToast]);
 
   const runSearch = useCallback(() => {
     if (isComposing) return;
@@ -468,7 +519,14 @@ export default function Home() {
         <div className="phone-chrome">
         <header className="topbar">
           <div className="brand-wrap">
-            <h1>GomMap</h1>
+            <button
+              type="button"
+              className="brand-btn"
+              onClick={handleInstallShortcut}
+              aria-label="GomMap 홈 화면 바로가기 추가"
+            >
+              <h1>GomMap</h1>
+            </button>
             <a
               className="diary-link"
               href="https://sooyachoco.github.io/schedule/"
