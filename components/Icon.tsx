@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
 
-type IconName = "search" | "bookmark" | "heart" | "target" | "close";
+type IconName = "search" | "bookmark" | "heart" | "target" | "close" | "share";
 
 const paths: Record<IconName, ReactNode> = {
   search: (
@@ -23,6 +23,14 @@ const paths: Record<IconName, ReactNode> = {
   close: (
     <>
       <path d="m7 7 10 10M17 7 7 17" />
+    </>
+  ),
+  share: (
+    <>
+      <circle cx="18" cy="5" r="2.5" />
+      <circle cx="6" cy="12" r="2.5" />
+      <circle cx="18" cy="19" r="2.5" />
+      <path d="m8.2 13.2 7.5 4.1M15.7 6.7l-7.5 4.1" />
     </>
   ),
 };

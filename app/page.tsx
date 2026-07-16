@@ -14,6 +14,7 @@ import {
   type PlaceCategoryFilter,
   type SavedPlace,
 } from "@/lib/places";
+import { sharePlace } from "@/lib/share";
 
 const categories: PlaceCategoryFilter[] = ["전체", "맛집", "카페", "데이트", "기타"];
 const profileSrc =
@@ -103,6 +104,16 @@ export default function Home() {
     setSelected(place);
     setExpanded(false);
   };
+
+  const handleShare = useCallback(
+    async (place: SavedPlace) => {
+      const result = await sharePlace(place);
+      if (result === "shared") showToast("장소를 공유했어요");
+      else if (result === "copied") showToast("공유 내용을 복사했어요");
+      else if (result === "failed") showToast("공유에 실패했어요");
+    },
+    [showToast],
+  );
 
   return (
     <main className="app-shell">
@@ -243,25 +254,37 @@ export default function Home() {
                   {selected.roadAddress || selected.address}
                   {selected.phone ? ` · ${selected.phone}` : ""}
                 </small>
-                {selected.placeUrl ? (
-                  <a
-                    href={selected.placeUrl}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="place-link"
-                  >
-                    카카오맵에서 보기
-                  </a>
-                ) : null}
+                <div className="place-actions-inline">
+                  {selected.placeUrl ? (
+                    <a
+                      href={selected.placeUrl}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="place-link"
+                    >
+                      카카오맵에서 보기
+                    </a>
+                  ) : null}
+                </div>
               </div>
-              <button
-                type="button"
-                className={isSelectedSaved ? "saved" : ""}
-                onClick={() => toggleSaved(selected)}
-                aria-label="선택한 장소 저장"
-              >
-                <Icon name="heart" />
-              </button>
+              <div className="place-actions">
+                <button
+                  type="button"
+                  className="share-btn"
+                  onClick={() => handleShare(selected)}
+                  aria-label="선택한 장소 공유"
+                >
+                  <Icon name="share" />
+                </button>
+                <button
+                  type="button"
+                  className={isSelectedSaved ? "saved" : ""}
+                  onClick={() => toggleSaved(selected)}
+                  aria-label="선택한 장소 저장"
+                >
+                  <Icon name="heart" />
+                </button>
+              </div>
             </article>
           ) : (
             <article className="selected-place placeholder">
@@ -341,6 +364,17 @@ export default function Home() {
                     </h3>
                     <p>{place.note || place.address}</p>
                   </div>
+                  <button
+                    className="share-btn ghost"
+                    type="button"
+                    onClick={(event) => {
+                      event.stopPropagation();
+                      handleShare(place);
+                    }}
+                    aria-label={`${place.name} 공유`}
+                  >
+                    <Icon name="share" />
+                  </button>
                   <button
                     className="heart saved"
                     type="button"

@@ -412,7 +412,7 @@ svg {
 }
 
 .place-link {
-  margin-top: 4px;
+  margin-top: 0;
   color: var(--coral);
   font-size: 11px;
   font-weight: 700;
@@ -420,9 +420,24 @@ svg {
   text-underline-offset: 2px;
 }
 
-.selected-place button {
+.place-actions-inline {
+  margin-top: 4px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+}
+
+.place-actions {
   margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 6px;
   flex: 0 0 auto;
+}
+
+.selected-place .place-actions button,
+.share-btn {
   width: 44px;
   height: 44px;
   display: grid;
@@ -434,8 +449,17 @@ svg {
   cursor: pointer;
 }
 
+.share-btn.ghost {
+  background: transparent;
+}
+
 .selected-place button.saved svg {
   fill: var(--coral);
+}
+
+.place-card .share-btn,
+.place-card .heart {
+  flex: 0 0 auto;
 }
 
 .sheet {
