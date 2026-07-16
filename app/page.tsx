@@ -404,6 +404,25 @@ export default function Home() {
     moved: boolean;
   } | null>(null);
 
+  // 목록/상단 어디서 골라도 같은 category를 쓰고, 활성 칩이 보이도록 맞춤
+  useEffect(() => {
+    const scrollActiveChipIntoView = (container: HTMLElement | null) => {
+      if (!container) return;
+      const active = container.querySelector<HTMLElement>(
+        `[data-category="${CSS.escape(category)}"]`,
+      );
+      if (!active) return;
+      active.scrollIntoView({
+        behavior: "smooth",
+        inline: "center",
+        block: "nearest",
+      });
+    };
+
+    scrollActiveChipIntoView(chipsScrollRef.current);
+    scrollActiveChipIntoView(sheetFilterScrollRef.current);
+  }, [category, customTags, expanded]);
+
   const onHScrollPointerDown = useCallback(
     (event: ReactPointerEvent<HTMLElement>) => {
       if (event.button !== 0) return;
@@ -602,6 +621,7 @@ export default function Home() {
             <button
               key={item}
               type="button"
+              data-category={item}
               className={category === item ? "active" : ""}
               onClick={() => setCategory(item)}
               aria-pressed={category === item}
@@ -839,6 +859,7 @@ export default function Home() {
                   <button
                     key={item}
                     type="button"
+                    data-category={item}
                     className={category === item ? "active" : ""}
                     aria-pressed={category === item}
                     onClick={() => setCategory(item)}
