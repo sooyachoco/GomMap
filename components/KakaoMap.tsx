@@ -115,10 +115,10 @@ export default function KakaoMap({
     const focusY = container.clientHeight / 2 - FOCUS_OFFSET_Y;
     const projection = map.getProjection();
 
-    let nearest: MarkerEntry | null = null;
+    let nearestPlace: SavedPlace | null = null;
     let nearestDistance = Infinity;
 
-    markersRef.current.forEach((entry) => {
+    for (const entry of markersRef.current) {
       const point = projection.containerPointFromCoords(
         new window.kakao.maps.LatLng(
           entry.place.latitude,
@@ -129,15 +129,15 @@ export default function KakaoMap({
       const distance = Math.hypot(x - focusX, y - focusY);
       if (distance < nearestDistance) {
         nearestDistance = distance;
-        nearest = entry;
+        nearestPlace = entry.place;
       }
-    });
+    }
 
-    if (!nearest || nearestDistance > FOCUS_SELECT_RADIUS_PX) return;
-    if (nearest.place.id === selectedPlaceIdRef.current) return;
+    if (!nearestPlace || nearestDistance > FOCUS_SELECT_RADIUS_PX) return;
+    if (nearestPlace.id === selectedPlaceIdRef.current) return;
 
     skipNextFocusPanRef.current = true;
-    onSelectPlaceRef.current(nearest.place);
+    onSelectPlaceRef.current(nearestPlace);
   }, []);
 
   selectNearestPlaceAtFocusRef.current = selectNearestPlaceAtFocus;
