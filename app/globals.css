@@ -190,7 +190,7 @@ svg {
 .chips {
   display: flex;
   gap: 6px;
-  padding: 14px 16px 16px;
+  padding: 8px 16px 10px;
   overflow-x: auto;
   scrollbar-width: none;
 }
@@ -202,13 +202,13 @@ svg {
 .chips button {
   flex: 1 1 0;
   min-width: 0;
-  min-height: 44px;
-  height: 44px;
+  min-height: 34px;
+  height: 34px;
   padding: 0 6px;
   border: 1px solid var(--line);
-  border-radius: 18px;
+  border-radius: 16px;
   background: white;
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 700;
   white-space: nowrap;
   cursor: pointer;
@@ -225,7 +225,7 @@ svg {
 
 .map {
   position: absolute;
-  inset: 232px 0 0;
+  inset: 210px 0 0;
   overflow: hidden;
   background: #e7eedf;
 }
