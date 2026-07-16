@@ -10,7 +10,9 @@ import {
 } from "react";
 import KakaoMap, { type SearchStatus } from "@/components/KakaoMap";
 import { Icon } from "@/components/Icon";
-import profileImg from "@/assets/profile.png";
+import profileGom from "@/assets/gom.png";
+import profileChoco from "@/assets/choco.png";
+import loveBubble from "@/assets/love.png";
 import {
   filterPlacesByCategory,
   filterSavedPlacesByTag,
@@ -26,8 +28,12 @@ import { sharePlace } from "@/lib/share";
 
 const categories: PlaceCategoryFilter[] = ["전체", "맛집", "카페", "데이트", "기타"];
 const saveTags = ["맛집", "카페", "데이트", "기타"] as const;
-const profileSrc =
-  typeof profileImg === "string" ? profileImg : profileImg.src;
+const gomSrc =
+  typeof profileGom === "string" ? profileGom : profileGom.src;
+const chocoSrc =
+  typeof profileChoco === "string" ? profileChoco : profileChoco.src;
+const loveSrc =
+  typeof loveBubble === "string" ? loveBubble : loveBubble.src;
 const SHEET_DRAG_THRESHOLD = 48;
 
 export default function Home() {
@@ -50,6 +56,7 @@ export default function Home() {
   const [mapMode, setMapMode] = useState<"search" | "saved">("search");
   const [sheetDragY, setSheetDragY] = useState(0);
   const [isSheetDragging, setIsSheetDragging] = useState(false);
+  const [showChoco, setShowChoco] = useState(false);
   const sheetDragRef = useRef<{
     pointerId: number;
     startY: number;
@@ -322,14 +329,34 @@ export default function Home() {
       <section className="phone" aria-label="GomMap 모바일 앱">
         <header className="topbar">
           <h1>GomMap</h1>
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
-            className="profile"
-            src={profileSrc}
-            alt="곰 프로필"
-            width={48}
-            height={48}
-          />
+          <div className="profile-wrap">
+            {showChoco ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                className="love-bubble"
+                src={loveSrc}
+                alt="곰지연씨 사랑해!"
+                width={148}
+                height={40}
+              />
+            ) : null}
+            <button
+              type="button"
+              className="profile-btn"
+              aria-label={showChoco ? "곰 프로필로 돌아가기" : "초코 프로필 보기"}
+              aria-pressed={showChoco}
+              onClick={() => setShowChoco((value) => !value)}
+            >
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                className="profile"
+                src={showChoco ? chocoSrc : gomSrc}
+                alt={showChoco ? "초코 프로필" : "곰 프로필"}
+                width={48}
+                height={48}
+              />
+            </button>
+          </div>
         </header>
 
         <div className="search-wrap">

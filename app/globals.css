@@ -86,6 +86,31 @@ svg {
   color: var(--ink);
 }
 
+.profile-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 6px;
+  min-width: 0;
+  flex: 1;
+}
+
+.profile-btn {
+  flex: 0 0 auto;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+  line-height: 0;
+}
+
+.profile-btn:focus-visible {
+  outline: 2px solid var(--coral);
+  outline-offset: 3px;
+  border-radius: 50%;
+}
+
 .profile {
   width: 48px;
   height: 48px;
@@ -94,6 +119,31 @@ svg {
   border: 3px solid white;
   box-shadow: 0 4px 14px rgba(73, 52, 39, 0.16);
   background: #f3d5b5;
+  display: block;
+}
+
+.love-bubble {
+  flex: 0 1 auto;
+  width: auto;
+  max-width: min(168px, calc(100% - 56px));
+  height: 36px;
+  object-fit: contain;
+  object-position: right center;
+  animation: love-pop 0.28s cubic-bezier(0.2, 0.8, 0.2, 1);
+  filter: drop-shadow(0 4px 10px rgba(73, 52, 39, 0.12));
+  pointer-events: none;
+  user-select: none;
+}
+
+@keyframes love-pop {
+  from {
+    opacity: 0;
+    transform: translateX(8px) scale(0.92);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0) scale(1);
+  }
 }
 
 .search-wrap {
