@@ -35,6 +35,10 @@ type MarkerEntry = {
 };
 
 const SCRIPT_ATTR = "data-kakao-map-sdk";
+/** 하단 카드에 가리지 않도록 마커를 올리는 화면 오프셋 (panBy와 동일) */
+const FOCUS_OFFSET_Y = 120;
+/** 포커스 지점 기준 이 거리(px) 안의 마커만 자동 선택 */
+const FOCUS_SELECT_RADIUS_PX = 96;
 
 function createPinElement(active: boolean): HTMLButtonElement {
   const button = document.createElement("button");
@@ -42,6 +46,13 @@ function createPinElement(active: boolean): HTMLButtonElement {
   button.className = active ? "kakao-pin selected" : "kakao-pin";
   button.innerHTML = "<span></span>";
   return button;
+}
+
+function pointXY(point: KakaoPoint): { x: number; y: number } {
+  return {
+    x: typeof point.getX === "function" ? point.getX() : point.x,
+    y: typeof point.getY === "function" ? point.getY() : point.y,
+  };
 }
 
 export default function KakaoMap({
@@ -67,6 +78,9 @@ export default function KakaoMap({
   const onSearchResultsRef = useRef(onSearchResults);
   const lastLocateIdRef = useRef(0);
   const categoryRef = useRef(category);
+  const skipNextFocusPanRef = useRef(false);
+  const suppressMapSelectRef = useRef(false);
+  const selectNearestPlaceAtFocusRef = useRef<() => void>(() => {});
   const [ready, setReady] = useState(false);
   const [loadError, setLoadError] = useState(false);
 
@@ -88,6 +102,45 @@ export default function KakaoMap({
       entry.overlay.setZIndex(isActive ? 10 : 1);
     });
   }, []);
+
+  const selectNearestPlaceAtFocus = useCallback(() => {
+    if (suppressMapSelectRef.current) return;
+
+    const map = mapRef.current;
+    const container = containerRef.current;
+    if (!map || !container || !window.kakao?.maps) return;
+    if (markersRef.current.length === 0) return;
+
+    const focusX = container.clientWidth / 2;
+    const focusY = container.clientHeight / 2 - FOCUS_OFFSET_Y;
+    const projection = map.getProjection();
+
+    let nearest: MarkerEntry | null = null;
+    let nearestDistance = Infinity;
+
+    markersRef.current.forEach((entry) => {
+      const point = projection.containerPointFromCoords(
+        new window.kakao.maps.LatLng(
+          entry.place.latitude,
+          entry.place.longitude,
+        ),
+      );
+      const { x, y } = pointXY(point);
+      const distance = Math.hypot(x - focusX, y - focusY);
+      if (distance < nearestDistance) {
+        nearestDistance = distance;
+        nearest = entry;
+      }
+    });
+
+    if (!nearest || nearestDistance > FOCUS_SELECT_RADIUS_PX) return;
+    if (nearest.place.id === selectedPlaceIdRef.current) return;
+
+    skipNextFocusPanRef.current = true;
+    onSelectPlaceRef.current(nearest.place);
+  }, []);
+
+  selectNearestPlaceAtFocusRef.current = selectNearestPlaceAtFocus;
 
   const renderMarkers = useCallback(
     (places: SavedPlace[], fitBounds: boolean) => {
@@ -134,6 +187,7 @@ export default function KakaoMap({
       });
 
       if (fitBounds && places.length > 0) {
+        suppressMapSelectRef.current = true;
         map.setBounds(bounds, 64);
       }
 
@@ -170,6 +224,20 @@ export default function KakaoMap({
 
         mapRef.current = map;
         placesServiceRef.current = new window.kakao.maps.services.Places();
+
+        window.kakao.maps.event.addListener(map, "idle", () => {
+          if (suppressMapSelectRef.current) {
+            suppressMapSelectRef.current = false;
+            return;
+          }
+          selectNearestPlaceAtFocusRef.current();
+        });
+
+        window.kakao.maps.event.addListener(map, "center_changed", () => {
+          if (suppressMapSelectRef.current) return;
+          selectNearestPlaceAtFocusRef.current();
+        });
+
         setReady(true);
         setLoadError(false);
       });
@@ -305,21 +373,28 @@ export default function KakaoMap({
     syncMarkerStyles(selectedPlaceId);
 
     if (!selectedPlaceId || !mapRef.current) return;
+
+    if (skipNextFocusPanRef.current) {
+      skipNextFocusPanRef.current = false;
+      return;
+    }
+
     const entry = markersRef.current.find(
       (item) => item.place.id === selectedPlaceId,
     );
     if (!entry) return;
 
     const map = mapRef.current;
+    suppressMapSelectRef.current = true;
     map.setCenter(
       new window.kakao.maps.LatLng(
         entry.place.latitude,
         entry.place.longitude,
       ),
     );
-    // 하단 장소 카드에 가리지 않도록 마커를 화면 기준 120px 위로 보이게 패닝
+    // 하단 장소 카드에 가리지 않도록 마커를 화면 기준 FOCUS_OFFSET_Y 위로 보이게 패닝
     window.requestAnimationFrame(() => {
-      map.panBy(0, 120);
+      map.panBy(0, FOCUS_OFFSET_Y);
     });
   }, [selectedPlaceId, ready, syncMarkerStyles]);
 

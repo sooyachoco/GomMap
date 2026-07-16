@@ -51,12 +51,12 @@ declare global {
       addListener: (
         target: KakaoMarker | KakaoMap | KakaoCustomOverlay,
         type: string,
-        handler: () => void,
+        handler: (...args: unknown[]) => void,
       ) => void;
       removeListener: (
         target: KakaoMarker | KakaoMap | KakaoCustomOverlay,
         type: string,
-        handler: () => void,
+        handler: (...args: unknown[]) => void,
       ) => void;
     };
     services: {
@@ -87,6 +87,12 @@ declare global {
     setBounds: (bounds: KakaoLatLngBounds, padding?: number) => void;
     panBy: (x: number, y: number) => void;
     relayout: () => void;
+    getProjection: () => KakaoMapProjection;
+  }
+
+  interface KakaoMapProjection {
+    containerPointFromCoords: (latlng: KakaoLatLng) => KakaoPoint;
+    coordsFromContainerPoint: (point: KakaoPoint) => KakaoLatLng;
   }
 
   interface KakaoMarker {
@@ -104,8 +110,12 @@ declare global {
   // eslint-disable-next-line @typescript-eslint/no-empty-object-type
   interface KakaoSize {}
 
-  // eslint-disable-next-line @typescript-eslint/no-empty-object-type
-  interface KakaoPoint {}
+  interface KakaoPoint {
+    x: number;
+    y: number;
+    getX: () => number;
+    getY: () => number;
+  }
 
   interface KakaoCustomOverlay {
     setMap: (map: KakaoMap | null) => void;
