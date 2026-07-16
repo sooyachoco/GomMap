@@ -13,7 +13,7 @@ import {
   type SavedPlace,
 } from "@/lib/places";
 
-const categories: PlaceCategoryFilter[] = ["전체", "맛집", "카페", "데이트"];
+const categories: PlaceCategoryFilter[] = ["전체", "맛집", "카페", "데이트", "기타"];
 
 export default function Home() {
   const [category, setCategory] = useState<PlaceCategoryFilter>("전체");
@@ -206,12 +206,12 @@ export default function Home() {
             filteredResults.length === 0 &&
             searchResults.length > 0 && (
               <div className="empty-map">
-                {category === "데이트"
-                  ? "데이트는 저장 시 붙이는 태그예요"
+                {category === "데이트" || category === "기타"
+                  ? `${category}는 저장 시 붙이는 태그예요`
                   : `${category} 결과가 없어요`}
                 <br />
                 <small>
-                  {category === "데이트"
+                  {category === "데이트" || category === "기타"
                     ? "저장한 장소에서 확인해 보세요"
                     : "전체 필터로 다시 살펴보세요"}
                 </small>
