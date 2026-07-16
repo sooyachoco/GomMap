@@ -394,26 +394,6 @@ svg {
     0 10px 22px rgba(172, 68, 58, 0.32);
 }
 
-.map-mode-badge {
-  position: absolute;
-  z-index: 5;
-  top: 12px;
-  left: 50%;
-  transform: translateX(-50%);
-  max-width: calc(100% - 96px);
-  padding: 8px 12px;
-  border-radius: 999px;
-  background: rgba(255, 253, 249, 0.94);
-  border: 1px solid white;
-  box-shadow: 0 6px 18px rgba(72, 60, 48, 0.12);
-  color: var(--ink);
-  font-size: 11px;
-  font-weight: 800;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
 .locate {
   position: absolute;
   z-index: 6;

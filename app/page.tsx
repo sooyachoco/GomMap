@@ -380,20 +380,6 @@ export default function Home() {
     [customTags, renamingTag, showToast],
   );
 
-  const modeLabel = useMemo(() => {
-    if (mapMode === "saved") {
-      const scope = category === "전체" ? "전체" : category;
-      return `저장한 장소 · ${scope} ${savedOnMap.length}`;
-    }
-    if (searchStatus === "ok") {
-      return category === "전체"
-        ? `검색 결과 ${filteredResults.length}`
-        : `검색 결과 · ${category} ${filteredResults.length}`;
-    }
-    if (searchStatus === "loading") return "검색 중…";
-    return "검색하거나 저장 장소를 열어보세요";
-  }, [mapMode, category, savedOnMap.length, searchStatus, filteredResults.length]);
-
   const chipsScrollRef = useRef<HTMLElement | null>(null);
   const sheetFilterScrollRef = useRef<HTMLDivElement | null>(null);
 
@@ -584,9 +570,6 @@ export default function Home() {
             onSearchResults={setSearchResults}
           />
 
-          <div className="map-mode-badge" role="status">
-            {modeLabel}
-          </div>
           {mapMode === "saved" && savedOnMap.length === 0 && (
             <div className="empty-map">
               {category === "전체"
