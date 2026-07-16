@@ -226,11 +226,6 @@ svg {
   -webkit-overflow-scrolling: touch;
   touch-action: pan-x;
   overscroll-behavior-x: contain;
-  cursor: grab;
-}
-
-.chips:active {
-  cursor: grabbing;
 }
 
 .chips::-webkit-scrollbar {
