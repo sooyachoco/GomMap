@@ -84,6 +84,15 @@ export function filterPlacesByCategory(
   );
 }
 
+/** 저장 목록은 사용자 태그 기준으로 지도/목록을 분류한다. */
+export function filterSavedPlacesByTag(
+  places: SavedPlace[],
+  category: PlaceCategoryFilter,
+): SavedPlace[] {
+  if (category === "전체") return places;
+  return places.filter((place) => (place.userTag || suggestSaveTag(place)) === category);
+}
+
 export function loadSavedPlaces(): SavedPlace[] {
   if (typeof window === "undefined") return [];
   try {

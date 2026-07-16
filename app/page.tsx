@@ -6,6 +6,7 @@ import { Icon } from "@/components/Icon";
 import profileImg from "@/assets/profile.png";
 import {
   filterPlacesByCategory,
+  filterSavedPlacesByTag,
   getPlaceEmoji,
   getPlaceTone,
   loadSavedPlaces,
@@ -37,6 +38,7 @@ export default function Home() {
   const [toast, setToast] = useState("");
   const [locateRequestId, setLocateRequestId] = useState(0);
   const [saveTag, setSaveTag] = useState<PlaceCategoryFilter>("맛집");
+  const [mapMode, setMapMode] = useState<"search" | "saved">("search");
 
   useEffect(() => {
     const timer = window.setTimeout(() => {
@@ -55,6 +57,13 @@ export default function Home() {
     [searchResults, category],
   );
 
+  const savedOnMap = useMemo(
+    () => filterSavedPlacesByTag(saved, category),
+    [saved, category],
+  );
+
+  const pinnedPlaces = mapMode === "saved" ? savedOnMap : null;
+
   const isSelectedSaved = Boolean(
     selected && saved.some((place) => place.id === selected.id),
   );
@@ -68,8 +77,30 @@ export default function Home() {
     if (isComposing) return;
     const keyword = query.trim();
     if (!keyword) return;
+    setMapMode("search");
     setSearchRequest({ keyword, requestId: Date.now() });
   }, [isComposing, query]);
+
+  const showSavedOnMap = useCallback(() => {
+    setMapMode("saved");
+    setExpanded(false);
+    const filtered = filterSavedPlacesByTag(saved, category);
+    if (filtered.length === 0) {
+      setSelected(null);
+      showToast(
+        category === "전체"
+          ? "저장한 장소가 없어요"
+          : `저장한 ${category}이(가) 없어요`,
+      );
+      return;
+    }
+    setSelected((current) => {
+      if (current && filtered.some((place) => place.id === current.id)) {
+        return current;
+      }
+      return filtered[0];
+    });
+  }, [saved, category, showToast]);
 
   const toggleSaved = useCallback(
     (place: SavedPlace, tag?: PlaceCategoryFilter) => {
@@ -101,6 +132,7 @@ export default function Home() {
   );
 
   const handleSelectSaved = (place: SavedPlace) => {
+    setMapMode("saved");
     setSelected(place);
     setExpanded(false);
   };
@@ -189,24 +221,34 @@ export default function Home() {
             category={category}
             selectedPlaceId={selected?.id ?? null}
             locateRequestId={locateRequestId}
+            pinnedPlaces={pinnedPlaces}
             onSelectPlace={setSelected}
             onSearchStatus={setSearchStatus}
             onSearchResults={setSearchResults}
           />
 
-          {searchStatus === "loading" && (
+          {mapMode === "saved" && savedOnMap.length === 0 && (
+            <div className="empty-map">
+              {category === "전체"
+                ? "저장한 장소가 없어요"
+                : `저장한 ${category}이(가) 없어요`}
+              <br />
+              <small>태그를 바꾸거나 장소를 저장해 보세요</small>
+            </div>
+          )}
+          {mapMode === "search" && searchStatus === "loading" && (
             <div className="map-status" role="status">
               검색 중…
             </div>
           )}
-          {searchStatus === "empty" && (
+          {mapMode === "search" && searchStatus === "empty" && (
             <div className="empty-map">
               검색 결과가 없어요
               <br />
               <small>다른 검색어를 입력해 보세요</small>
             </div>
           )}
-          {searchStatus === "error" && (
+          {mapMode === "search" && searchStatus === "error" && (
             <div className="empty-map" role="alert">
               검색에 실패했어요
               <br />
@@ -215,7 +257,8 @@ export default function Home() {
               </button>
             </div>
           )}
-          {searchStatus === "ok" &&
+          {mapMode === "search" &&
+            searchStatus === "ok" &&
             category !== "전체" &&
             filteredResults.length === 0 &&
             searchResults.length > 0 && (
@@ -314,7 +357,13 @@ export default function Home() {
                 저장한 장소 <span>{saved.length}</span>
               </h2>
             </div>
-            <button type="button" onClick={() => setExpanded((value) => !value)}>
+            <button
+              type="button"
+              onClick={() => {
+                if (expanded) showSavedOnMap();
+                else setExpanded(true);
+              }}
+            >
               {expanded ? "지도 보기" : "전체 보기"}
             </button>
           </div>

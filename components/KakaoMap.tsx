@@ -21,6 +21,8 @@ type KakaoMapProps = {
   category: PlaceCategoryFilter;
   selectedPlaceId: string | null;
   locateRequestId: number;
+  /** null이면 검색 결과 마커, 배열이면 저장 장소 마커 */
+  pinnedPlaces: SavedPlace[] | null;
   onSelectPlace: (place: SavedPlace | null) => void;
   onSearchStatus: (status: SearchStatus) => void;
   onSearchResults: (places: SavedPlace[]) => void;
@@ -47,6 +49,7 @@ export default function KakaoMap({
   category,
   selectedPlaceId,
   locateRequestId,
+  pinnedPlaces,
   onSelectPlace,
   onSearchStatus,
   onSearchResults,
@@ -218,7 +221,7 @@ export default function KakaoMap({
   }, [appKey, clearMarkers]);
 
   useEffect(() => {
-    if (!ready || !searchRequest) return;
+    if (!ready || !searchRequest || pinnedPlaces) return;
 
     const keyword = searchRequest.keyword.trim();
     if (!keyword) return;
@@ -267,10 +270,22 @@ export default function KakaoMap({
 
       onSearchStatusRef.current("error");
     });
-  }, [searchRequest, ready, clearMarkers, renderMarkers]);
+  }, [searchRequest, ready, clearMarkers, renderMarkers, pinnedPlaces]);
 
   useEffect(() => {
     if (!ready) return;
+
+    if (pinnedPlaces) {
+      renderMarkers(pinnedPlaces, true);
+      if (
+        selectedPlaceIdRef.current &&
+        !pinnedPlaces.some((place) => place.id === selectedPlaceIdRef.current)
+      ) {
+        onSelectPlaceRef.current(pinnedPlaces[0] ?? null);
+      }
+      return;
+    }
+
     const filtered = filterPlacesByCategory(
       searchResultsRef.current,
       category,
@@ -283,7 +298,7 @@ export default function KakaoMap({
     ) {
       onSelectPlaceRef.current(filtered[0] ?? null);
     }
-  }, [category, ready, renderMarkers]);
+  }, [category, ready, renderMarkers, pinnedPlaces]);
 
   useEffect(() => {
     if (!ready) return;
