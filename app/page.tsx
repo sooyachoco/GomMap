@@ -286,7 +286,7 @@ export default function Home() {
 
           {selected ? (
             <article className="selected-place">
-              <div>
+              <div className="place-info">
                 <div className="place-title-row">
                   <strong>{selected.name}</strong>
                   {selected.category ? (
@@ -331,7 +331,7 @@ export default function Home() {
             </article>
           ) : (
             <article className="selected-place placeholder">
-              <div>
+              <div className="place-info">
                 <div className="place-title-row">
                   <strong>장소를 검색해 보세요</strong>
                 </div>

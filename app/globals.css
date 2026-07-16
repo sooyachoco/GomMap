@@ -367,7 +367,7 @@ svg {
   opacity: 0.92;
 }
 
-.selected-place > div {
+.selected-place > .place-info {
   min-width: 0;
   flex: 1;
   display: grid;
