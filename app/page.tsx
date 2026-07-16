@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import KakaoMap, { type SearchStatus } from "@/components/KakaoMap";
 import { Icon } from "@/components/Icon";
+import profileImg from "@/assets/profile.png";
 import {
   filterPlacesByCategory,
   getPlaceEmoji,
@@ -15,7 +16,8 @@ import {
 } from "@/lib/places";
 
 const categories: PlaceCategoryFilter[] = ["전체", "맛집", "카페", "데이트", "기타"];
-const profileSrc = `${process.env.NEXT_PUBLIC_BASE_PATH || ""}/profile.png`;
+const profileSrc =
+  typeof profileImg === "string" ? profileImg : profileImg.src;
 
 export default function Home() {
   const [category, setCategory] = useState<PlaceCategoryFilter>("전체");
