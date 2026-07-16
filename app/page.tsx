@@ -111,9 +111,6 @@ export default function Home() {
             <p className="eyebrow">나만의 장소 컬렉션</p>
             <h1>GomMap</h1>
           </div>
-          <button className="profile" type="button" aria-label="내 프로필">
-            승
-          </button>
         </header>
 
         <div className="search-wrap">

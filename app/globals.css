@@ -110,21 +110,6 @@ svg {
   font-weight: 700;
 }
 
-.profile {
-  margin-left: auto;
-  width: 44px;
-  height: 44px;
-  min-width: 44px;
-  min-height: 44px;
-  border-radius: 50%;
-  border: 3px solid white;
-  background: #dac2ad;
-  color: white;
-  font-weight: 800;
-  box-shadow: 0 3px 14px rgba(73, 52, 39, 0.14);
-  cursor: pointer;
-}
-
 .search-wrap {
   height: 58px;
   margin: 0 20px;
@@ -754,7 +739,7 @@ svg {
   }
 
   .map {
-    inset: 224px 0 0;
+    inset: 202px 0 0;
   }
 
   .selected-place {
