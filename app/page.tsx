@@ -1,6 +1,13 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type PointerEvent as ReactPointerEvent,
+} from "react";
 import KakaoMap, { type SearchStatus } from "@/components/KakaoMap";
 import { Icon } from "@/components/Icon";
 import profileImg from "@/assets/profile.png";
@@ -21,6 +28,7 @@ const categories: PlaceCategoryFilter[] = ["전체", "맛집", "카페", "데이
 const saveTags = ["맛집", "카페", "데이트", "기타"] as const;
 const profileSrc =
   typeof profileImg === "string" ? profileImg : profileImg.src;
+const SHEET_DRAG_THRESHOLD = 48;
 
 export default function Home() {
   const [category, setCategory] = useState<PlaceCategoryFilter>("전체");
@@ -40,6 +48,13 @@ export default function Home() {
   const [locateRequestId, setLocateRequestId] = useState(0);
   const [saveTag, setSaveTag] = useState<PlaceCategoryFilter>("맛집");
   const [mapMode, setMapMode] = useState<"search" | "saved">("search");
+  const [sheetDragY, setSheetDragY] = useState(0);
+  const [isSheetDragging, setIsSheetDragging] = useState(false);
+  const sheetDragRef = useRef<{
+    pointerId: number;
+    startY: number;
+    lastY: number;
+  } | null>(null);
 
   useEffect(() => {
     const timer = window.setTimeout(() => {
@@ -184,6 +199,63 @@ export default function Home() {
     if (searchStatus === "loading") return "검색 중…";
     return "검색하거나 저장 장소를 열어보세요";
   }, [mapMode, category, savedOnMap.length, searchStatus, filteredResults.length]);
+
+  const finishSheetDrag = useCallback(
+    (deltaY: number) => {
+      setIsSheetDragging(false);
+      setSheetDragY(0);
+      sheetDragRef.current = null;
+
+      if (!expanded && deltaY <= -SHEET_DRAG_THRESHOLD) {
+        setExpanded(true);
+        return;
+      }
+      if (expanded && deltaY >= SHEET_DRAG_THRESHOLD) {
+        setExpanded(false);
+      }
+    },
+    [expanded],
+  );
+
+  const onSheetPointerDown = useCallback(
+    (event: ReactPointerEvent<HTMLElement>) => {
+      if (event.button !== 0) return;
+      sheetDragRef.current = {
+        pointerId: event.pointerId,
+        startY: event.clientY,
+        lastY: event.clientY,
+      };
+      setIsSheetDragging(true);
+      setSheetDragY(0);
+      event.currentTarget.setPointerCapture(event.pointerId);
+    },
+    [],
+  );
+
+  const onSheetPointerMove = useCallback(
+    (event: ReactPointerEvent<HTMLElement>) => {
+      const drag = sheetDragRef.current;
+      if (!drag || drag.pointerId !== event.pointerId) return;
+
+      const deltaY = event.clientY - drag.startY;
+      drag.lastY = event.clientY;
+      setSheetDragY(expanded ? Math.max(0, deltaY) : Math.min(0, deltaY));
+    },
+    [expanded],
+  );
+
+  const onSheetPointerUp = useCallback(
+    (event: ReactPointerEvent<HTMLElement>) => {
+      const drag = sheetDragRef.current;
+      if (!drag || drag.pointerId !== event.pointerId) return;
+      const deltaY = drag.lastY - drag.startY;
+      if (event.currentTarget.hasPointerCapture(event.pointerId)) {
+        event.currentTarget.releasePointerCapture(event.pointerId);
+      }
+      finishSheetDrag(deltaY);
+    },
+    [finishSheetDrag],
+  );
 
   return (
     <main className="app-shell">
@@ -421,31 +493,47 @@ export default function Home() {
           )}
         </section>
 
-        <section className={`sheet ${expanded ? "expanded" : "collapsed"}`}>
-          <button
-            className="sheet-handle"
-            type="button"
-            onClick={() => setExpanded((value) => !value)}
-            aria-label={expanded ? "저장 목록 접기" : "저장 목록 펼치기"}
+        <section
+          className={`sheet ${expanded ? "expanded" : "collapsed"}${isSheetDragging ? " dragging" : ""}`}
+          style={
+            isSheetDragging || sheetDragY
+              ? { transform: `translateY(${sheetDragY}px)` }
+              : undefined
+          }
+        >
+          <div
+            className="sheet-drag-zone"
+            onPointerDown={onSheetPointerDown}
+            onPointerMove={onSheetPointerMove}
+            onPointerUp={onSheetPointerUp}
+            onPointerCancel={onSheetPointerUp}
           >
-            <span />
-          </button>
-          <div className="sheet-heading">
-            <div>
-              <p>MY PLACES</p>
-              <h2>
-                저장한 장소 <span>{saved.length}</span>
-              </h2>
-            </div>
             <button
+              className="sheet-handle"
               type="button"
-              onClick={() => {
-                if (expanded) showSavedOnMap();
-                else setExpanded(true);
-              }}
+              onClick={() => setExpanded((value) => !value)}
+              aria-label={expanded ? "저장 목록 접기" : "저장 목록 펼치기"}
             >
-              {expanded ? "지도 보기" : "전체 보기"}
+              <span />
             </button>
+            <div className="sheet-heading">
+              <div>
+                <p>MY PLACES</p>
+                <h2>
+                  저장한 장소 <span>{saved.length}</span>
+                </h2>
+              </div>
+              <button
+                type="button"
+                onPointerDown={(event) => event.stopPropagation()}
+                onClick={() => {
+                  if (expanded) showSavedOnMap();
+                  else setExpanded(true);
+                }}
+              >
+                {expanded ? "지도 보기" : "전체 보기"}
+              </button>
+            </div>
           </div>
 
           {expanded && selected && !isSelectedSaved ? (
